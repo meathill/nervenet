@@ -1,0 +1,29 @@
+{
+  "name": "NerveNet",
+  "version": "0.1.0",
+  "description": "A nerve net help every parts of project work together",
+  "keywords": ["framework", "namespace", "event bus", "dependency inject"],
+  "homepage": "https://github.com/meathill/nervenet",
+  "bugs": "https://github.com/meathill/nervenet/issues",
+  "license": "MIT",
+  "author": {
+    "name": "Meathill Zhai",
+    "email": "meathill@gmail.com",
+    "url": "http://blog.meathill.com/"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/meathill/nervenet"
+  },
+  "dependencies": {
+    "connect": ">2.7"
+  },
+  "devDependencies": {
+    "grunt": "~0.4.1",
+    "grunt-contrib-concat": "~0.2.0",
+    "grunt-contrib-uglify": "~0.2.0",
+    "grunt-contrib-copy": "~0.4.1",
+    "grunt-text-replace": "~0.3.1",
+    "qunitjs": ">=1.11.0"
+  }
+}
