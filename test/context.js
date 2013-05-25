@@ -17,4 +17,15 @@ test("load config", function () {
   }
   var runner = context.config(config);
   ok(runner === context, 'Passed!');
-})
+});
+
+test('inject class', function () {
+  var context = new Context();
+  function sample() {
+
+  }
+  context.inject(sample);
+  var instance = new sample();
+  ok('app' in instance, 'injected!');
+  equal(instance.app, context, 'receive context!');
+});

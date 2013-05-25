@@ -28,6 +28,9 @@ Context.prototype = {
   import: function () {
 
   },
+  inject: function (constructor) {
+    constructor.prototype.app = this;
+  },
   register: function (namespace, className, constructor) {
     var node = this.createNameSpace(namespace, this.root);
     constructor.prototype.app = this;

@@ -17,10 +17,10 @@ Injector.prototype = {
   singletons: null,
   eventMap: null,
   getSingleton: function (className) {
-    if (!(className in this.constructors)) {
-      throw new Error('no such class');
-    }
     if (!this.singletons[className]) {
+      if (!(className in this.constructors)) {
+        throw new Error('no such class');
+      }
       this.singletons[className] = new this.constructors[className]();
     }
     return this.singletons[className];
@@ -32,14 +32,16 @@ Injector.prototype = {
       context: context
     });
   },
-  mapSingleton: function (className, constructor) {
-    if (!isFunction(constructor)) {
-      throw new Error('not a class');
+  mapSingleton: function (className, value) {
+    if (isFunction(value)) {
+      this.constructors[className] = value;
+    } else {
+      this.singletons[className] = value;
     }
-    this.constructors[className] = constructor;
   },
   trigger: function (eventType) {
     var args = Array.prototype.slice.call(arguments, 1);
+    args.push(this);
     for (var i = 0, len = this.eventMap.length; i < len; i++) {
       var eventObj = this.eventMap[i];
       if (eventObj.type === eventType) {
