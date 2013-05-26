@@ -7,26 +7,51 @@
  * @since 0.1
  */
 'use strict';
-var Context = function () {
-  this.injector = new Injector();
-}
+var namespaces = {},
+    Context = function () {
+      this.injector = new Injector();
+    };
+Context.createNameSpace = function (ns, root) {
+  var arr = ns.split('.'),
+      root = root || window;
+
+  // note first level namespace here
+  namespaces[ns] = root;
+
+  for (var i = 0, len = arr.length; i < len; i++) {
+    root[arr[i]] = root[arr[i]] || {};
+    root = root[arr[i]];
+  }
+  return root;
+};
 Context.prototype = {
   injector: null,
   config: function (func) {
     func.call(this);
     return this;
   },
-  createNameSpace: function (ns, root) {
-    var arr = ns.split('.'),
-        root = root || window;
-    for (var i = 0, len = arr.length; i < len; i++) {
-      root[arr[i]] = root[arr[i]] || {};
-      root = root[arr[i]];
-    }
-    return root;
-  },
   import: function () {
 
+  },
+  initInjector: function (exclusive) {
+    exclusive = isArray(exclusive) ? exclusive : [exclusive];
+    for (var prop in namespaces) {
+      for (var i = 0, len = exclusive.length; i < len; i++) {
+        var reg = new RegExp('^' + exclusive[i]);
+        if (!reg.test(prop)) {
+          var arr = prop.split('.'),
+              node = namespaces[prop];
+          for (var j = 0, depth = arr.length; j < depth; j++) {
+            node = node[arr[j]];
+          }
+          for (var className in node) {
+            if (isFunction(node[className])) {
+              node[className].prototype.app = this;
+            }
+          }
+        }
+      }
+    }
   },
   inject: function (constructor) {
     constructor.prototype.app = this;

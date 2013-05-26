@@ -29,3 +29,27 @@ test('inject class', function () {
   ok('app' in instance, 'injected!');
   equal(instance.app, context, 'receive context!');
 });
+
+test('init injector', function () {
+  var context = new Context();
+  Context.createNameSpace('com.meathill.test');
+  com.meathill.test.Sample = function () {
+
+  }
+  context.initInjector();
+  var instance = new com.meathill.test.Sample();
+
+  ok('app' in instance, 'injected!');
+});
+
+test('init injector with exclusive', function () {
+  var context = new Context();
+  Context.createNameSpace('com.meathill.test');
+  com.meathill.test.Sample = function () {
+
+  }
+  context.initInjector('com.meathill');
+  var instance = new com.meathill.test.Sample();
+
+  ok(!('app' in instance), 'not injected!');
+});

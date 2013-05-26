@@ -9,3 +9,9 @@
 function isFunction(obj) {
   return typeof obj == 'function';
 }
+function isArray(obj) {
+  if ('isArray' in Array) {
+    return Array.isArray(obj);
+  }
+  return Object.prototype.toString.call(obj) === '[object Array]';
+}
