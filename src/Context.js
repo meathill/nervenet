@@ -30,9 +30,6 @@ Context.prototype = {
     func.call(this);
     return this;
   },
-  import: function () {
-
-  },
   initInjector: function (exclusive) {
     exclusive = isArray(exclusive) ? exclusive : [exclusive];
     for (var prop in namespaces) {
@@ -55,10 +52,5 @@ Context.prototype = {
   },
   inject: function (constructor) {
     constructor.prototype.app = this;
-  },
-  register: function (namespace, className, constructor) {
-    var node = this.createNameSpace(namespace, this.root);
-    constructor.prototype.app = this;
-    node[className] = constructor;
   }
 }
