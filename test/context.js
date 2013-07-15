@@ -24,7 +24,7 @@ test('inject class', function () {
   function sample() {
 
   }
-  context.inject(sample);
+  context.injectInto(sample);
   var instance = new sample();
   ok('app' in instance, 'injected!');
   equal(instance.app, context, 'receive context!');
@@ -36,7 +36,7 @@ test('init injector', function () {
   com.meathill.test.Sample = function () {
 
   }
-  context.initInjector();
+  context.init();
   var instance = new com.meathill.test.Sample();
 
   ok('app' in instance, 'injected!');
@@ -48,8 +48,54 @@ test('init injector with exclusive', function () {
   com.meathill.test.Sample = function () {
 
   }
-  context.initInjector('com.meathill');
+  context.init('com.meathill');
   var instance = new com.meathill.test.Sample();
 
   ok(!('app' in instance), 'not injected!');
+});
+
+test('map singleton', function () {
+  var context = new Context(),
+      count = 0,
+      func = function () {
+        count += 1;
+        this.getCount = function () {
+          return count;
+        }
+      };
+  context.mapSingleton('test', func);
+  var test1 = context.getSingleton('test'),
+      test2 = context.getSingleton('test');
+  ok(test1 === test2, 'It is singleton');
+  equal(count, 1, 'Only run once');
+});
+
+test('map singleton instance', function () {
+  var context = new Context(),
+      count = 0,
+      func = function () {
+        count += 1;
+        this.getCount = function () {
+          return count;
+        }
+      },
+      instance = new func();
+  context.mapSingleton('test', instance);
+  var test1 = context.getSingleton('test'),
+      test2 = context.getSingleton('test');
+  ok(test1 === test2, 'It is singleton');
+  equal(count, 1, 'Only run once');
+});
+
+test('map event', function () {
+  var context = new Context(),
+      obj = {
+        number: 1
+      };
+  context.mapEvent('check', function (curr) {
+    equal(curr, 1, 'args ok');
+    equal(this.number, 1, 'context ok');
+    ok(arguments[1] === context, 'receive app');
+  }, obj);
+  context.trigger('check', 1);
 });

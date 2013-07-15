@@ -14,9 +14,12 @@ module.exports = function (grunt) {
         dest: 'Nervenet.js',
         src: [
           'src/intro.js',
+          'src/core.js',
+          'src/config.js',
+
           'src/Context.js',
-          'src/Injector.js',
           'src/utils.js',
+
           'src/outro.js'
         ]
       }

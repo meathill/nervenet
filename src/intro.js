@@ -5,17 +5,7 @@
  * Copyright 2013 All contributors
  * Released under the MIT license
  */
-(function () {
-  // save a reference to the global object
-  var root = this;
-  var Nervenet;
-  if (typeof exports !== 'undefined') {
-    Nervenet = exports;
-  } else {
-    Nervenet = root.Nervenet = {};
+(function (global) {
+  if (global.Nervenet) {
+    return;
   }
-
-  Nervenet.VERSION = '@VERSION@';
-  Nervenet.createContext = function () {
-    return new Context();
-  };
