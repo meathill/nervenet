@@ -7,6 +7,6 @@
  * @since 0.1
  */
 var config = Nervenet.config = {
-  context: 'app'
-
+  context: 'app',
+  isAjax: true
 };
