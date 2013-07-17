@@ -32,7 +32,7 @@ test('inject class', function () {
 
 test('init injector', function () {
   var context = new Context();
-  Context.createNameSpace('com.meathill.test');
+  Nervenet.createNameSpace('com.meathill.test');
   com.meathill.test.Sample = function () {
 
   }
@@ -44,7 +44,7 @@ test('init injector', function () {
 
 test('init injector with exclusive', function () {
   var context = new Context();
-  Context.createNameSpace('com.meathill.test');
+  Nervenet.createNameSpace('com.meathill.test');
   com.meathill.test.Sample = function () {
 
   }
@@ -63,7 +63,7 @@ test('map singleton', function () {
           return count;
         }
       };
-  context.mapSingleton('test', func);
+  context.mapSingleton(func, 'test');
   var test1 = context.getSingleton('test'),
       test2 = context.getSingleton('test');
   ok(test1 === test2, 'It is singleton');
@@ -80,7 +80,7 @@ test('map singleton instance', function () {
         }
       },
       instance = new func();
-  context.mapSingleton('test', instance);
+  context.mapSingleton(instance, 'test');
   var test1 = context.getSingleton('test'),
       test2 = context.getSingleton('test');
   ok(test1 === test2, 'It is singleton');

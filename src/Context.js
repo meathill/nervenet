@@ -51,7 +51,7 @@ Context.prototype = {
   },
   mapEvent: function (event, command, context) {
     this.eventMap[event] = this.eventMap.event || [];
-    this.eventMap.event.push({
+    this.eventMap[event].push({
       command: command,
       context: context
     });
