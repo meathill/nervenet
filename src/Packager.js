@@ -6,41 +6,61 @@
  * @author Meathill <meathill@gmail.com> (http://blog.meathill.com/)
  * @since 0.1
  */
-var REG = /import ((\w+\.)+\w+)/ig,
+var REG = /(import|extend) ((\w+\.)+\w+)/ig,
+    index = -1,
     queue = [],
-    isLoading = false,
+    ordered = [],
     head = document.getElementsByTagName('head')[0] || document.documentElement,
-    baseElement = head.getElementsByTagName('base')[0];
+    baseElement = head.getElementsByTagName('base')[0],
+    xhr = new XMLHttpRequest();
+
+xhr.onload = onload;
 
 function onload() {
-  this.onload = this.onerror = this.onreadystatechange = null;
+  queue[index].content = this.response;
+  packager.parse(this.response);
+}
+function getPath(str) {
 
-  packager.loadNext();
+}
+function createScript(str) {
+
 }
 
 var packager = {
-  loadNext: function () {
-    var node = document.createElement('script');
-    node.async = true;
-    node.src = queue.shift();
-    node.onload = node.onerror = node.onreadystatechange = onload;
-
-    if (baseElement) {
-      head.insertBefore(node, baseElement)
-    } else {
-      head.appendChild(node);
+  createNodes: function () {
+    for (var i = 0, len = ordered.length; i < len; i++) {
+      for (var j = 0; j < len; j++) {
+        if (queue[j].className === ordered[i]) {
+          break;
+        }
+      }
+      createScript(queue[j].content);
     }
+  },
+  loadNext: function () {
+    index++;
+    if (index === queue.length) {
+      this.createNodes();
+    }
+
+    xhr.open('get', queue[index].url);
+    xhr.send();
   },
   parse: function (str) {
     var classes = str.match(REG);
     for (var i = 0, len = classes.length; i < len; i++) {
-      if (this.queue.indexOf(classes[i]) === -1) {
-        queue.push(classes[i]);
+      if (ordered.indexOf(classes[i]) === -1) {
+        queue.push({
+          className: classes[i][2],
+          url: getPath(classes[i][2]),
+          type: classes[i][1],
+          content: ''
+        });
+        ordered.push(classes[i][2]);
       }
     }
-    if (!isLoading) {
-      this.loadNext();
-    }
+    this.loadNext();
   },
   onComplete: function (callback) {
     callback();
