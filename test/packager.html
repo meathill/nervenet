@@ -2,17 +2,16 @@
 <html>
 <head>
   <meta charset="utf-8">
-  <title>Context测试</title>
+  <title>加载包测试</title>
   <link rel="stylesheet" href="http://code.jquery.com/qunit/qunit-1.12.0.css">
   <script src="http://code.jquery.com/qunit/qunit-1.12.0.js"></script>
   <script>
-    var global = this;
+    var global = this,
+        Nervenet = {};
   </script>
-  <script src="../src/core.js"></script>
+  <script src="../src/packager.js"></script>
   <script src="../src/config.js"></script>
-  <script src="../src/Context.js"></script>
-  <script src="../src/utils.js"></script>
-  <script src="context.js"></script>
+  <script src="packager.js"></script>
 </head>
 <body>
   <div id="qunit"></div>

@@ -65,7 +65,7 @@ Context.prototype = {
   },
   start: function (callback) {
     packager.parse(callback.toString());
-    packager.onComplete(callback);
+    packager.onComplete(callback, this);
   },
   trigger: function (event) {
     var args = Array.prototype.slice.call(arguments, 1),

@@ -10,6 +10,7 @@ var REG = /(import|extend) ((\w+\.)+\w+)/ig,
     index = -1,
     queue = [],
     ordered = [],
+    startup = {},
     head = document.getElementsByTagName('head')[0] || document.documentElement,
     baseElement = head.getElementsByTagName('base')[0],
     xhr = new XMLHttpRequest();
@@ -37,6 +38,8 @@ var packager = {
       }
       createScript(queue[j].content);
     }
+
+    startup.func.call(startup.context);
   },
   loadNext: function () {
     index++;
@@ -62,7 +65,10 @@ var packager = {
     }
     this.loadNext();
   },
-  onComplete: function (callback) {
-    callback();
+  onComplete: function (callback, context) {
+    startup = {
+      func: callback,
+      context: context
+    };
   }
 };
