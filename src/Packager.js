@@ -22,10 +22,16 @@ function onload() {
   packager.parse(this.response);
 }
 function getPath(str) {
-
+  return config.dir + '/' + str.split('.').join('/') + '.js';
 }
 function createScript(str) {
-
+  var script = document.createElement('script');
+  script.innerHTML = str;
+  if (baseElement) {
+    head.insertBefore(script, baseElement);
+  } else {
+    head.appendChild(script);
+  }
 }
 
 var packager = {
