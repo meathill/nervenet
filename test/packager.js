@@ -8,8 +8,8 @@
  */
 
 test('get path', function () {
-  var package = 'com.meathill.Sample';
-  equal(getPath(package), 'js/com/meathill/Sample.js');
+  var fullname = 'com.meathill.Sample';
+  equal(getPath(fullname), 'js/com/meathill/Sample.js');
 });
 
 test('create script', function () {
@@ -21,7 +21,6 @@ test('create script', function () {
 test("parse function", function () {
   var startup = function () {
     "import com.meathill.Super";
-    "import com.meathill.Sub";
 
     var a = 1,
         b = 2;
@@ -29,10 +28,18 @@ test("parse function", function () {
   };
   packager.parse(startup);
   ok(queue.length, 'has item');
-  notDeepEqual(queue[0], {
+  deepEqual(queue[0], {
     className: 'Super',
-    url: './js/com/meathill/Super.js',
+    fullname: 'com.meathill.Super',
     type: 'import',
     content: ''
   }, 'item ok')
+});
+
+test("load queue", function () {
+  ok(true);
+});
+
+test("load dependencies", function () {
+  ok(true);
 });

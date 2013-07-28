@@ -36,14 +36,14 @@ var packager = {
   createNodes: function () {
     for (var i = 0, len = ordered.length; i < len; i++) {
       for (var j = 0; j < len; j++) {
-        if (queue[j].className === ordered[i]) {
+        if (queue[j].fullname === ordered[i]) {
           break;
         }
       }
       createScript(queue[j].content);
     }
 
-    if (startup) {
+    if ('func' in startup) {
       startup.func.call(startup.context);
     }
   },
@@ -51,30 +51,31 @@ var packager = {
     index++;
     if (index === queue.length) {
       this.createNodes();
+      return;
     }
 
-    xhr.open('get', queue[index].url);
+    xhr.open('get', getPath(queue[index].fullname));
     xhr.send();
   },
   parse: function (str) {
-    if (!str) {
-      return;
-    }
     if (isFunction(str)) {
       str = str.toString();
     }
     var classes = str.match(REG);
-    for (var i = 0, len = classes.length; i < len; i++) {
-      if (ordered.indexOf(classes[i]) === -1) {
-        queue.push({
-          className: classes[i].slice(classes[i].lastIndexOf('.') + 1),
-          url: getPath(classes[i].slice(7)),
-          type: classes[i].substr(0, 6),
-          content: ''
-        });
-        ordered.push(classes[i][2]);
+    if (classes) {
+      for (var i = 0, len = classes.length; i < len; i++) {
+        if (ordered.indexOf(classes[i]) === -1) {
+          queue.push({
+            fullname: classes[i].slice(7),
+            className: classes[i].slice(classes[i].lastIndexOf('.') + 1),
+            type: classes[i].substr(0, 6),
+            content: ''
+          });
+          ordered.push(queue[i].fullname);
+        }
       }
     }
+
     this.loadNext();
   },
   onComplete: function (callback, context) {
