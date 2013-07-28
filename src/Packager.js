@@ -6,7 +6,7 @@
  * @author Meathill <meathill@gmail.com> (http://blog.meathill.com/)
  * @since 0.1
  */
-var REG = /(import|extend) ((\w+\.)+\w+)/ig,
+var REG = /(import|extend) ((\w+\.)+(\w+))/ig,
     index = -1,
     queue = [],
     ordered = [],
@@ -15,9 +15,7 @@ var REG = /(import|extend) ((\w+\.)+\w+)/ig,
     baseElement = head.getElementsByTagName('base')[0],
     xhr = new XMLHttpRequest();
 
-xhr.onload = onload;
-
-function onload() {
+xhr.onload = function () {
   queue[index].content = this.response;
   packager.parse(this.response);
 }
@@ -45,7 +43,9 @@ var packager = {
       createScript(queue[j].content);
     }
 
-    startup.func.call(startup.context);
+    if (startup) {
+      startup.func.call(startup.context);
+    }
   },
   loadNext: function () {
     index++;
@@ -57,13 +57,19 @@ var packager = {
     xhr.send();
   },
   parse: function (str) {
+    if (!str) {
+      return;
+    }
+    if (isFunction(str)) {
+      str = str.toString();
+    }
     var classes = str.match(REG);
     for (var i = 0, len = classes.length; i < len; i++) {
       if (ordered.indexOf(classes[i]) === -1) {
         queue.push({
-          className: classes[i][2],
-          url: getPath(classes[i][2]),
-          type: classes[i][1],
+          className: classes[i].slice(classes[i].lastIndexOf('.') + 1),
+          url: getPath(classes[i].slice(7)),
+          type: classes[i].substr(0, 6),
           content: ''
         });
         ordered.push(classes[i][2]);

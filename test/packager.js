@@ -9,17 +9,30 @@
 
 test('get path', function () {
   var package = 'com.meathill.Sample';
-  equal(getPath(package), './js/com/meathill/Sample.js');
+  equal(getPath(package), 'js/com/meathill/Sample.js');
 });
 
-//test('');
-/*test("parse function", function () {
+test('create script', function () {
+  var funcstr = "function Sample() { console.log('ok'); }";
+  createScript(funcstr);
+  ok('Sample' in window);
+});
+
+test("parse function", function () {
   var startup = function () {
-    "import com.meathill.test";
+    "import com.meathill.Super";
+    "import com.meathill.Sub";
 
     var a = 1,
         b = 2;
     console.log(a + b);
   };
   packager.parse(startup);
-});*/
+  ok(queue.length, 'has item');
+  notDeepEqual(queue[0], {
+    className: 'Super',
+    url: './js/com/meathill/Super.js',
+    type: 'import',
+    content: ''
+  }, 'item ok')
+});

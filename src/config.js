@@ -8,6 +8,6 @@
  */
 var config = Nervenet.config = {
   context: 'app',
-  dir: './js',
+  dir: 'js',
   isAjax: true
 };
