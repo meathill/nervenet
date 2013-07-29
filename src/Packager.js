@@ -17,13 +17,15 @@ var REG = /(import|extend) ((\w+\.)+(\w+))/ig,
 
 xhr.onload = function () {
   queue[index].content = this.response;
-  packager.parse(this.response);
+  Packager.parse(this.response);
+  Packager.loadNext();
 }
 function getPath(str) {
   return config.dir + '/' + str.split('.').join('/') + '.js';
 }
 function createScript(str) {
   var script = document.createElement('script');
+  script.className = 'nervenet';
   script.innerHTML = str;
   if (baseElement) {
     head.insertBefore(script, baseElement);
@@ -32,7 +34,7 @@ function createScript(str) {
   }
 }
 
-var packager = {
+var Packager = {
   createNodes: function () {
     for (var i = 0, len = ordered.length; i < len; i++) {
       for (var j = 0; j < len; j++) {
@@ -49,7 +51,7 @@ var packager = {
   },
   loadNext: function () {
     index++;
-    if (index === queue.length) {
+    if (index >= queue.length) {
       this.createNodes();
       return;
     }
@@ -64,24 +66,31 @@ var packager = {
     var classes = str.match(REG);
     if (classes) {
       for (var i = 0, len = classes.length; i < len; i++) {
-        if (ordered.indexOf(classes[i]) === -1) {
+        var fullname = classes[i].slice(7);
+        if (ordered.indexOf(fullname) === -1) {
           queue.push({
-            fullname: classes[i].slice(7),
-            className: classes[i].slice(classes[i].lastIndexOf('.') + 1),
+            fullname: fullname,
+            className: fullname.slice(fullname.lastIndexOf('.') + 1),
             type: classes[i].substr(0, 6),
             content: ''
           });
-          ordered.push(queue[i].fullname);
+          ordered.push(fullname);
         }
       }
     }
-
-    this.loadNext();
   },
-  onComplete: function (callback, context) {
+  reset: function () {
+    ordered = [];
+    queue = [];
+  },
+  start: function (callback, context) {
+    this.reset();
     startup = {
       func: callback,
       context: context
     };
+
+    this.parse(callback);
+    this.loadNext();
   }
 };

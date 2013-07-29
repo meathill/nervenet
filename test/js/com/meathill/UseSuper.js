@@ -9,13 +9,13 @@
 ;(function (window) {
   "import com.meathill.Super";
   var Book = function (title) {
-    this.author = new Super('Mui', 'Zhai');
+    this.author = new Person('Mui', 'Zhai');
 
     this.title = title;
 
-    this.getAuthor = function () {
-      console.log(this.author.getFullName());
-    }
-  }
+    this.getDetail = function () {
+      return this.title + ' by ' + this.author.getFullName();
+    };
+  };
   window.Book = Book;
 }(window));

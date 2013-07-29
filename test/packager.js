@@ -22,24 +22,58 @@ test("parse function", function () {
   var startup = function () {
     "import com.meathill.Super";
 
-    var a = 1,
-        b = 2;
-    console.log(a + b);
+    var me = new Super();
+    console.log(me.getFullName());
   };
-  packager.parse(startup);
+  Packager.reset();
+  Packager.parse(startup);
   ok(queue.length, 'has item');
   deepEqual(queue[0], {
     className: 'Super',
     fullname: 'com.meathill.Super',
     type: 'import',
     content: ''
-  }, 'item ok')
+  }, 'item ok');
 });
 
-test("load queue", function () {
-  ok(true);
+asyncTest('start with callback', function () {
+  var startup = function () {
+    "import com.meathill.Super";
+
+    var me = new Person();
+
+    ok(me, "load success");
+    equal(me.getFullName(), 'Meathill Homestayer');
+    start();
+  };
+
+  Packager.start(startup, this);
 });
 
-test("load dependencies", function () {
-  ok(true);
+asyncTest("load queue", function () {
+  var startup = function () {
+    "import com.meathill.UseSuper";
+
+    var book = new Book('Shitman');
+
+    ok(book, "load success");
+    equal(book.getDetail(), 'Shitman by Mui Zhai');
+    start();
+  };
+
+  Packager.start(startup, this);
+});
+
+asyncTest("use by dependencies", function () {
+  var startup = function () {
+    "import com.meathill.Sub";
+
+    var mate = new Student('Anna', 'Chen', 2);
+
+    ok(mate, "load success");
+    equal(mate.getDetail(), 'Anna Chen at Grade.2');
+    start();
+  };
+
+  Packager.start(startup, this);
 });
