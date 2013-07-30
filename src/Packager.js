@@ -23,9 +23,10 @@ xhr.onload = function () {
 function getPath(str) {
   return config.dir + '/' + str.split('.').join('/') + '.js';
 }
-function createScript(str) {
+function createScript(str, className) {
+  className = className || '';
   var script = document.createElement('script');
-  script.className = 'nervenet';
+  script.className = 'nervenet ' + className;
   script.innerHTML = str;
   if (baseElement) {
     head.insertBefore(script, baseElement);
@@ -42,7 +43,8 @@ var Packager = {
           break;
         }
       }
-      createScript(queue[j].content);
+      createScript(queue[j].content, queue[j].className);
+      queue.splice(j, 1);
     }
 
     if ('func' in startup) {
@@ -68,13 +70,23 @@ var Packager = {
       for (var i = 0, len = classes.length; i < len; i++) {
         var fullname = classes[i].slice(7);
         if (ordered.indexOf(fullname) === -1) {
-          queue.push({
+          var item = {
             fullname: fullname,
             className: fullname.slice(fullname.lastIndexOf('.') + 1),
             type: classes[i].substr(0, 6),
             content: ''
-          });
-          ordered.push(fullname);
+          };
+          queue.push(item);
+          if (item.type === 'import') {
+            ordered.push(fullname);
+          } else {
+            var sub = queue[index].fullname,
+                j = 0;
+            while (ordered[j] !== sub) {
+              j++;
+            }
+            ordered.splice(j, 0, fullname);
+          }
         }
       }
     }

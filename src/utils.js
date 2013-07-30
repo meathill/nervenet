@@ -16,7 +16,7 @@ function isArray(obj) {
   return Object.prototype.toString.call(obj) === '[object Array]';
 }
 function inherit(superClass, subClass) {
-  var prototype = object(superClass.prototype);
+  var prototype = Object(superClass.prototype);
   prototype.constructor = subClass;
   subClass.prototype = prototype;
 }
