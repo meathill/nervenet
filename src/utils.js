@@ -6,6 +6,9 @@
  * @author Meathill <meathill@gmail.com> (http://blog.meathill.com/)
  * @since 0.1
  */
+
+var slice = Array.prototype.slice;
+
 function isFunction(obj) {
   return typeof obj == 'function';
 }

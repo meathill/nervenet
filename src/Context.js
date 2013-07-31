@@ -11,11 +11,18 @@ var Context = function () {
   this.singletons = {};
   this.constructors = {};
   this.eventMap = {};
+  this.kvMap = {};
 };
 Context.prototype = {
   config: function (func) {
     func.call(this);
     return this;
+  },
+  createInstance: function (constructor) {
+    var args = slice.call(arguments, 1),
+        instance = new constructor(args);
+    instance[config.context] = this;
+    return instance;
   },
   getSingleton: function (alias) {
     if (!(alias in this.singletons)) {
@@ -25,6 +32,9 @@ Context.prototype = {
       this.singletons[alias] = new this.constructors[alias]();
     }
     return this.singletons[alias];
+  },
+  getValue: function (key) {
+    return this.kvMap[key];
   },
   init: function (exclusive) {
     exclusive = isArray(exclusive) ? exclusive : [exclusive];
@@ -63,9 +73,11 @@ Context.prototype = {
       this.singletons[alias] = className;
     }
   },
+  mapValue: function (key, value) {
+    this.kvMap[key] = value;
+  },
   start: function (callback) {
-    packager.parse(callback.toString());
-    packager.onComplete(callback, this);
+    Packager.start(callback, this);
   },
   trigger: function (event) {
     var args = Array.prototype.slice.call(arguments, 1),
@@ -76,4 +88,4 @@ Context.prototype = {
       eventObj.command.apply(eventObj.context, args);
     }
   }
-}
+};
