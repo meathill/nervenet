@@ -10,13 +10,23 @@ test("create", function() {
   ok(new Context(), "Passed!");
 });
 
-test("load config", function () {
+test('map value', function () {
+  var context = new Context(),
+      Author = {
+        name: 'Meathill',
+        email: 'meathill@gmail.com'
+      };
+  context.mapValue('author', Author);
+  ok(context.getValue('author') === Author);
+});
+
+test('create instance', function () {
   var context = new Context();
-  function config() {
-    return this;
+  function Sample() {
+
   }
-  var runner = context.config(config);
-  ok(runner === context, 'Passed!');
+  var instance = context.createInstance(Sample);
+  ok(instance[config.context] === context);
 });
 
 test('inject class', function () {
@@ -28,6 +38,13 @@ test('inject class', function () {
   var instance = new sample();
   ok('app' in instance, 'injected!');
   equal(instance.app, context, 'receive context!');
+});
+
+test('inject instance', function () {
+  var context = new Context(),
+      sample = {};
+  context.injectInto(sample);
+  ok(sample[config.context] === context);
 });
 
 test('init injector', function () {

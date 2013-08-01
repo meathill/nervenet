@@ -14,10 +14,6 @@ var Context = function () {
   this.kvMap = {};
 };
 Context.prototype = {
-  config: function (func) {
-    func.call(this);
-    return this;
-  },
   createInstance: function (constructor) {
     var args = slice.call(arguments, 1),
         instance = new constructor(args);
@@ -57,7 +53,11 @@ Context.prototype = {
     }
   },
   injectInto: function (constructor) {
-    constructor.prototype[config.context] = this;
+    if (isFunction(constructor)) {
+      constructor.prototype[config.context] = this;
+    } else {
+      constructor[config.context] = this;
+    }
   },
   mapEvent: function (event, command, context) {
     this.eventMap[event] = this.eventMap.event || [];
