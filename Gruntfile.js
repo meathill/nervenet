@@ -13,14 +13,12 @@ module.exports = function (grunt) {
       all: {
         dest: 'Nervenet.js',
         src: [
-          'src/intro.js',
           'src/core.js',
           'src/config.js',
 
           'src/Context.js',
-          'src/utils.js',
-
-          'src/outro.js'
+          'src/Packager.js',
+          'src/utils.js'
         ]
       }
     },
@@ -32,7 +30,10 @@ module.exports = function (grunt) {
     },
     uglify: {
       options: {
-        banner: '/*! <%= pkg.name %> <%= grunt.template.today("yyyy-mm-dd") %> */\n'
+        report: 'gzip',
+        sourceMap: 'Nervenet.min.map',
+        banner: '/* <%= pkg.name %> ver.<%= pkg.version %>  (c) 2013 Meathill  MIT*/\n',
+        wrap: 'Nervenet'
       },
       target: {
         files: {
@@ -44,6 +45,7 @@ module.exports = function (grunt) {
 
   grunt.loadNpmTasks('grunt-contrib-concat');
   grunt.loadNpmTasks('grunt-contrib-uglify');
+  grunt.loadNpmTasks('grunt-contrib-qunit');
 
   grunt.registerMultiTask('replace', 'Replace tokens', function () {
     var src = this.data.src,

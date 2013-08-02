@@ -6,9 +6,9 @@
  * @author Meathill <meathill@gmail.com> (http://blog.meathill.com/)
  * @since Nervenet对象
  */
+
 var namespaces = {};
-// save a reference to the global object
-var Nervenet = global.Nervenet = {
+var Nervenet = {
   VERSION: '@VERSION@',
   createContext: function () {
     return new Context();
