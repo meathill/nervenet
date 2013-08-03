@@ -6,8 +6,9 @@
  * @author Meathill <meathill@gmail.com> (http://blog.meathill.com/)
  * @since 0.1
  */
-var config = Nervenet.config = {
+var config = {
   context: 'app',
   dir: 'js',
+  injectPrefix: '$',
   isAjax: true
 };

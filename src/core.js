@@ -27,3 +27,4 @@ var Nervenet = {
     return root;
   }
 };
+extend(exports, Nervenet);

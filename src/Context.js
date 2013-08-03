@@ -11,7 +11,7 @@ var Context = function () {
   this.singletons = {};
   this.constructors = {};
   this.eventMap = {};
-  this.kvMap = {};
+  this.voMap = {};
 };
 Context.prototype = {
   createInstance: function (constructor) {
@@ -30,29 +30,12 @@ Context.prototype = {
     return this.singletons[alias];
   },
   getValue: function (key) {
-    return this.kvMap[key];
+    return this.voMap[key];
   },
-  init: function (exclusive) {
-    exclusive = isArray(exclusive) ? exclusive : [exclusive];
-    for (var prop in namespaces) {
-      for (var i = 0, len = exclusive.length; i < len; i++) {
-        var reg = new RegExp('^' + exclusive[i]);
-        if (!reg.test(prop)) {
-          var arr = prop.split('.'),
-              node = namespaces[prop];
-          for (var j = 0, depth = arr.length; j < depth; j++) {
-            node = node[arr[j]];
-          }
-          for (var className in node) {
-            if (isFunction(node[className])) {
-              node[className].prototype[config.context] = this;
-            }
-          }
-        }
-      }
-    }
+  hasValue: function (key) {
+    return key in this.voMap;
   },
-  injectInto: function (constructor) {
+  inject: function (constructor) {
     if (isFunction(constructor)) {
       constructor.prototype[config.context] = this;
     } else {
@@ -74,7 +57,12 @@ Context.prototype = {
     }
   },
   mapValue: function (key, value) {
-    this.kvMap[key] = value;
+    this.voMap[key] = value;
+    return this;
+  },
+  removeValue: function (key) {
+    this.voMap[key] = null;
+    delete this.voMap[key];
   },
   start: function (callback) {
     Packager.start(callback, this);

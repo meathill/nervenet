@@ -1,5 +1,40 @@
 /**
  * Created with JetBrains WebStorm.
+ * Date: 13-5-25
+ * Time: 下午12:41
+ * @overview a group of functions
+ * @author Meathill <meathill@gmail.com> (http://blog.meathill.com/)
+ * @since 0.1
+ */
+
+var slice = Array.prototype.slice;
+
+function isFunction(obj) {
+  return typeof obj == 'function';
+}
+function isArray(obj) {
+  if ('isArray' in Array) {
+    return Array.isArray(obj);
+  }
+  return Object.prototype.toString.call(obj) === '[object Array]';
+}
+function inherit(superClass, subClass) {
+  var prototype = Object(superClass.prototype);
+  prototype.constructor = subClass;
+  subClass.prototype = prototype;
+}
+function extend(obj) {
+  var args = slice.call(arguments, 1);
+  for (var i = 0, len = args.length; i < len; i++) {
+    var source = args[i];
+    for (var prop in source) {
+      obj[prop] = source[prop];
+    }
+  }
+  return obj;
+};
+/**
+ * Created with JetBrains WebStorm.
  * Date: 13-7-15
  * Time: 下午9:55
  * @overview the NerveNet object
@@ -8,24 +43,26 @@
  */
 
 var namespaces = {};
-// save a reference to the global object
-exports.VERSION = '0.1.0';
-exports.createContext = function () {
-  return new Context();
-};
-exports.createNameSpace = function (ns, root) {
-  var arr = ns.split('.'),
-      root = root || global;
+var Nervenet = {
+  VERSION: '0.1.0',
+  createContext: function () {
+    return new Context();
+  },
+  createNameSpace: function (ns, root) {
+    var arr = ns.split('.'),
+        root = root || global;
 
-  // note first level namespace here
-  namespaces[ns] = root;
+    // note first level namespace here
+    namespaces[ns] = root;
 
-  for (var i = 0, len = arr.length; i < len; i++) {
-    root[arr[i]] = root[arr[i]] || {};
-    root = root[arr[i]];
+    for (var i = 0, len = arr.length; i < len; i++) {
+      root[arr[i]] = root[arr[i]] || {};
+      root = root[arr[i]];
+    }
+    return root;
   }
-  return root;
 };
+extend(exports, Nervenet);
 /**
  * Created with JetBrains WebStorm.
  * Date: 13-7-15
@@ -34,7 +71,7 @@ exports.createNameSpace = function (ns, root) {
  * @author Meathill <meathill@gmail.com> (http://blog.meathill.com/)
  * @since 0.1
  */
-var config = exports.config = {
+var config = {
   context: 'app',
   dir: 'js',
   isAjax: true
@@ -93,7 +130,7 @@ Context.prototype = {
       }
     }
   },
-  injectInto: function (constructor) {
+  inject: function (constructor) {
     if (isFunction(constructor)) {
       constructor.prototype[config.context] = this;
     } else {
@@ -238,28 +275,3 @@ var Packager = {
     this.loadNext();
   }
 };
-/**
- * Created with JetBrains WebStorm.
- * Date: 13-5-25
- * Time: 下午12:41
- * @overview a group of functions
- * @author Meathill <meathill@gmail.com> (http://blog.meathill.com/)
- * @since 0.1
- */
-
-var slice = Array.prototype.slice;
-
-function isFunction(obj) {
-  return typeof obj == 'function';
-}
-function isArray(obj) {
-  if ('isArray' in Array) {
-    return Array.isArray(obj);
-  }
-  return Object.prototype.toString.call(obj) === '[object Array]';
-}
-function inherit(superClass, subClass) {
-  var prototype = Object(superClass.prototype);
-  prototype.constructor = subClass;
-  subClass.prototype = prototype;
-}

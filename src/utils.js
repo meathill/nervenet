@@ -23,3 +23,13 @@ function inherit(superClass, subClass) {
   prototype.constructor = subClass;
   subClass.prototype = prototype;
 }
+function extend(obj) {
+  var args = slice.call(arguments, 1);
+  for (var i = 0, len = args.length; i < len; i++) {
+    var source = args[i];
+    for (var prop in source) {
+      obj[prop] = source[prop];
+    }
+  }
+  return obj;
+};

@@ -6,18 +6,42 @@
  * @author Meathill <meathill@gmail.com> (http://blog.meathill.com)
  * @since 0.1
  */
+
+function Sample() {
+  this.author = '';
+  this.$author = '';
+}
+
+var KEY = 'author',
+    Author = {
+      name: 'Meathill',
+      email: 'meathill@gmail.com'
+    };
+
 test("create", function() {
   ok(new Context(), "Passed!");
 });
 
 test('map value', function () {
+  var context = new Context();
+  context.mapValue(KEY, Author);
+  ok(context.getValue(KEY) === Author);
+  ok(context.hasValue(KEY) === true);
+  context.removeValue(KEY);
+  ok(context.hasValue(KEY) === false);
+});
+
+test('inject', function () {
   var context = new Context(),
-      Author = {
-        name: 'Meathill',
-        email: 'meathill@gmail.com'
-      };
-  context.mapValue('author', Author);
-  ok(context.getValue('author') === Author);
+      instance = new Sample();
+  context
+    .mapValue(KEY, Author)
+    .inject(instance);
+  ok(instance.$author === Author, 'injected!');
+
+  config.injectPrefix = ''
+  context.inject(instance)
+  ok(instance.author === Author, 'injected again!');
 });
 
 test('create instance', function () {
@@ -27,48 +51,6 @@ test('create instance', function () {
   }
   var instance = context.createInstance(Sample);
   ok(instance[config.context] === context);
-});
-
-test('inject class', function () {
-  var context = new Context();
-  function sample() {
-
-  }
-  context.injectInto(sample);
-  var instance = new sample();
-  ok('app' in instance, 'injected!');
-  equal(instance.app, context, 'receive context!');
-});
-
-test('inject instance', function () {
-  var context = new Context(),
-      sample = {};
-  context.injectInto(sample);
-  ok(sample[config.context] === context);
-});
-
-test('init injector', function () {
-  var context = new Context();
-  Nervenet.createNameSpace('com.meathill.test');
-  com.meathill.test.Sample = function () {
-
-  }
-  context.init();
-  var instance = new com.meathill.test.Sample();
-
-  ok('app' in instance, 'injected!');
-});
-
-test('init injector with exclusive', function () {
-  var context = new Context();
-  Nervenet.createNameSpace('com.meathill.test');
-  com.meathill.test.Sample = function () {
-
-  }
-  context.init('com.meathill');
-  var instance = new com.meathill.test.Sample();
-
-  ok(!('app' in instance), 'not injected!');
 });
 
 test('map singleton', function () {
