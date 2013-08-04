@@ -10,6 +10,17 @@
 function Sample() {
   this.author = '';
   this.$author = '';
+  this.$book = '';
+  this.$store = 'BookStore';
+}
+function Book() {
+  this.title = 'The Song of Fire and Ice';
+}
+function BookStore() {
+  this.name = 'Torchlight';
+  this.sell = function (book) {
+
+  };
 }
 
 var KEY = 'author',
@@ -26,7 +37,7 @@ test('map value', function () {
   var context = new Context();
   context.mapValue(KEY, Author);
   ok(context.getValue(KEY) === Author);
-  ok(context.hasValue(KEY) === true);
+  ok(context.hasValue(KEY));
   context.removeValue(KEY);
   ok(context.hasValue(KEY) === false);
 });
@@ -39,51 +50,67 @@ test('inject', function () {
     .inject(instance);
   ok(instance.$author === Author, 'injected!');
 
-  config.injectPrefix = ''
-  context.inject(instance)
+  context.config.injectPrefix = '';
+  context.inject(instance);
   ok(instance.author === Author, 'injected again!');
+});
+
+test('inject instance', function () {
+  var context = new Context(),
+      instance = new Sample(),
+      book = new Book();
+  context
+    .mapSingleton('book', book)
+    .inject(instance);
+  ok(instance.$book === book, 'inject singleton');
+});
+
+test('inject with type', function () {
+  var context = new Context(),
+      instance = new Sample();
+  context
+    .mapClass('store', BookStore)
+    .inject(instance);
+  ok(instance.$store === store, 'inject BookStore');
+});
+
+test('map class', function () {
+  var context = new Context();
+  context.mapClass(KEY, Sample);
+  ok(context.getClass(KEY) === Sample);
+  ok(context.hasClass(KEY));
+  context.removeClass(KEY);
+  ok(!context.hasClass(KEY));
 });
 
 test('create instance', function () {
   var context = new Context();
-  function Sample() {
-
-  }
+  context.mapValue(KEY, Author);
   var instance = context.createInstance(Sample);
-  ok(instance[config.context] === context);
+  ok(instance instanceof Sample, 'create by Constructor');
+  ok(instance.$author === Author, 'injected!');
+
+  context.mapClass('sample', Sample);
+  instance = context.createInstance('sample');
+  ok(instance instanceof Sample, 'create by mapname');
+  ok(instance.$author === Author, 'injected!');
 });
 
 test('map singleton', function () {
-  var context = new Context(),
-      count = 0,
-      func = function () {
-        count += 1;
-        this.getCount = function () {
-          return count;
-        }
-      };
-  context.mapSingleton(func, 'test');
-  var test1 = context.getSingleton('test'),
-      test2 = context.getSingleton('test');
+  var context = new Context();
+  context.mapSingleton('sample', Sample);
+  var test1 = context.getSingleton('sample'),
+      test2 = context.getSingleton('sample');
   ok(test1 === test2, 'It is singleton');
-  equal(count, 1, 'Only run once');
 });
 
 test('map singleton instance', function () {
   var context = new Context(),
-      count = 0,
-      func = function () {
-        count += 1;
-        this.getCount = function () {
-          return count;
-        }
-      },
-      instance = new func();
-  context.mapSingleton(instance, 'test');
-  var test1 = context.getSingleton('test'),
-      test2 = context.getSingleton('test');
+      instance = new Sample();
+  context.mapSingleton('sample', instance);
+  var test1 = context.getSingleton('sample'),
+      test2 = context.getSingleton('sample');
   ok(test1 === test2, 'It is singleton');
-  equal(count, 1, 'Only run once');
 });
 
 test('map event', function () {
