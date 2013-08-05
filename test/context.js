@@ -65,13 +65,13 @@ test('inject instance', function () {
   ok(instance.$book === book, 'inject singleton');
 });
 
-test('inject with type', function () {
+test('inject with specific type', function () {
   var context = new Context(),
       instance = new Sample();
   context
-    .mapClass('store', BookStore)
+    .mapClass('somestore', BookStore)
     .inject(instance);
-  ok(instance.$store === store, 'inject BookStore');
+  ok(instance.$store instanceof BookStore, 'inject with BookStore');
 });
 
 test('map class', function () {

@@ -16,7 +16,8 @@ var Context = function () {
   this.config = extend({}, config);
 };
 var Errors = {
-  NOT_A_CLASS: '[Error Nervenet.context.mapClass]'
+  NOT_A_CLASS: '[Error Nervenet.context.mapClass] the second parameter is invalid, a class is expected',
+  SOMETHING_EXIST: '[Error Nerver.context.mapClass/mapSingleton/mapValue] the mapping already exist'
 };
 Context.prototype = {
   createInstance: function (constructor) {
@@ -44,6 +45,9 @@ Context.prototype = {
   hasClass: function (key) {
     return key in this.constructors;
   },
+  hasSingleton: function (key) {
+    return key in this.singletons;
+  },
   hasValue: function (key) {
     return key in this.voMap;
   },
@@ -54,9 +58,34 @@ Context.prototype = {
         continue;
       }
       var key = name.substr(this.config.injectPrefix.length),
-          value = target[name];
-      if (value && checkNamespace(value)) {
-
+          value = target[name],
+          type = parseNamespace(value);
+      if (type) { // has specific type
+        if (isFunction(type)) { // need (to create) instance
+          // check if exist
+          var isExist = false;
+          for (var constructor in this.constructors) {
+            if (this.getClass(constructor) === type) {
+              if (this.hasSingleton(constructor)) {
+                target[name] = this.getSingleton(constructor);
+              } else {
+                target[name] = this.createInstance(constructor);
+                this.mapSingleton(constructor, target[name]);
+              }
+              isExist = true;
+              break;
+            }
+          }
+          if (!isExist) {
+            target[name] = this.createInstance(type);
+            this.mapSingleton(value, type, target[name]);
+            continue;
+          }
+        } else {
+          this.mapValue(value, type);
+          target[name] = type;
+          continue;
+        }
       }
       if (this.voMap.hasOwnProperty(key)) {
         target[name] = this.getValue(key);
@@ -76,7 +105,11 @@ Context.prototype = {
     if (!isFunction(constructor)) {
       throw new Error(Errors.NOT_A_CLASS);
     }
+    if (this.hasClass(key)) {
+      throw new Error(Errors.SOMETHING_EXIST);
+    }
     this.constructors[key] = constructor;
+    return this;
   },
   mapEvent: function (event, command, context) {
     this.eventMap[event] = this.eventMap.event || [];
@@ -86,6 +119,9 @@ Context.prototype = {
     });
   },
   mapSingleton: function (alias, constructor, instance) {
+    if (this.hasSingleton(alias)) {
+      throw new Error(Errors.SOMETHING_EXIST);
+    }
     if (instance) {
       this.constructors[alias] = constructor;
       this.singletons[alias] = instance;
@@ -98,6 +134,9 @@ Context.prototype = {
     return this;
   },
   mapValue: function (key, value) {
+    if (this.hasValue(key)) {
+      throw new Error(Errors.SOMETHING_EXIST);
+    }
     this.voMap[key] = value;
     return this;
   },

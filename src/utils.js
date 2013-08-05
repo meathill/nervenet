@@ -37,7 +37,10 @@ function extend(obj) {
   }
   return obj;
 }
-function checkNamespace(str) {
+function parseNamespace(str) {
+  if (!str) {
+    return false;
+  }
   var arr = str.split('.'),
       root = global[arr[0]];
   for (var i = 1, len = arr.length; i < len; i++) {
@@ -46,5 +49,5 @@ function checkNamespace(str) {
     }
     root = root[arr[i]];
   }
-  return isFunction(root);
+  return root;
 }
