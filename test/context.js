@@ -78,9 +78,9 @@ test('map class', function () {
   var context = new Context();
   context.mapClass(KEY, Sample);
   ok(context.getClass(KEY) === Sample);
-  ok(context.hasClass(KEY));
-  context.removeClass(KEY);
-  ok(!context.hasClass(KEY));
+  ok(context.hasMapping(KEY));
+  context.removeMapping(KEY);
+  ok(!context.hasMapping(KEY));
 });
 
 test('create instance', function () {

@@ -133,7 +133,7 @@ Context.prototype = {
     return instance;
   },
   getClass: function (key) {
-    return this.constructors[key];
+    return this.mappings[key].klass;
   },
   getSingleton: function (alias) {
     if (!(alias in this.singletons)) {
@@ -169,7 +169,7 @@ Context.prototype = {
         if (isFunction(type)) { // need (to create) instance
           // check if exist
           var isExist = false;
-          for (var constructor in this.constructors) {
+          for (var vo in this.mappings) {
             if (this.getClass(constructor) === type) {
               if (this.hasSingleton(constructor)) {
                 target[name] = this.getSingleton(constructor);
