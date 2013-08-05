@@ -8,7 +8,7 @@
  */
 
 var namespaces = {};
-var Nervenet = {
+var Nervenet = global.Nervenet = {
   VERSION: '@VERSION@',
   createContext: function () {
     return new Context();
@@ -27,4 +27,3 @@ var Nervenet = {
     return root;
   }
 };
-extend(exports, Nervenet);

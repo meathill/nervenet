@@ -1,4 +1,15 @@
 /**
+ * Nerve Net Library
+ * https://github.com/meathill/nervenet
+ *
+ * Copyright 2013 All contributors
+ * Released under the MIT license
+ */
+(function (global) {
+  if (global.Nervenet) {
+    return;
+  }
+/**
  * Created with JetBrains WebStorm.
  * Date: 13-5-25
  * Time: 下午12:41
@@ -7,10 +18,14 @@
  * @since 0.1
  */
 
-var slice = Array.prototype.slice;
+var slice = Array.prototype.slice,
+    toString = Object.prototype.toString;
 
 function isFunction(obj) {
-  return typeof obj == 'function';
+  return toString.call(obj) === '[object Function]';
+}
+function isString(obj) {
+  return toString.call(obj) === '[object String]';
 }
 function isArray(obj) {
   if ('isArray' in Array) {
@@ -32,7 +47,21 @@ function extend(obj) {
     }
   }
   return obj;
-};
+}
+function parseNamespace(str) {
+  if (!str) {
+    return false;
+  }
+  var arr = str.split('.'),
+      root = global[arr[0]];
+  for (var i = 1, len = arr.length; i < len; i++) {
+    if (!(arr[i] in root)) {
+      return false;
+    }
+    root = root[arr[i]];
+  }
+  return root;
+}
 /**
  * Created with JetBrains WebStorm.
  * Date: 13-7-15
@@ -43,7 +72,7 @@ function extend(obj) {
  */
 
 var namespaces = {};
-var Nervenet = {
+var Nervenet = global.Nervenet = {
   VERSION: '0.1.0',
   createContext: function () {
     return new Context();
@@ -62,7 +91,6 @@ var Nervenet = {
     return root;
   }
 };
-extend(exports, Nervenet);
 /**
  * Created with JetBrains WebStorm.
  * Date: 13-7-15
@@ -72,9 +100,8 @@ extend(exports, Nervenet);
  * @since 0.1
  */
 var config = {
-  context: 'app',
   dir: 'js',
-  isAjax: true
+  injectPrefix: '$'
 };
 /**
  * Created with JetBrains WebStorm.
@@ -85,57 +112,109 @@ var config = {
  * @since 0.1
  */
 'use strict';
+
 var Context = function () {
   this.singletons = {};
   this.constructors = {};
   this.eventMap = {};
-  this.kvMap = {};
+  this.voMap = {};
+  this.config = extend({}, config);
+};
+var Errors = {
+  NOT_A_CLASS: '[Error Nervenet.context.mapClass] the second parameter is invalid, a class is expected',
+  SOMETHING_EXIST: '[Error Nerver.context.mapClass/mapSingleton/mapValue] the mapping already exist'
 };
 Context.prototype = {
   createInstance: function (constructor) {
-    var args = slice.call(arguments, 1),
-        instance = new constructor(args);
-    instance[config.context] = this;
+    var args = slice.call(arguments, 1);
+    constructor = isString(constructor) ? this.getClass(constructor) : constructor;
+    var instance = new constructor(args);
+    this.inject(instance);
     return instance;
+  },
+  getClass: function (key) {
+    return this.constructors[key];
   },
   getSingleton: function (alias) {
     if (!(alias in this.singletons)) {
       if (!(alias in this.constructors)) {
         throw new Error('no such class');
       }
-      this.singletons[alias] = new this.constructors[alias]();
+      this.singletons[alias] = this.createInstance(alias);
     }
     return this.singletons[alias];
   },
   getValue: function (key) {
-    return this.kvMap[key];
+    return this.voMap[key];
   },
-  init: function (exclusive) {
-    exclusive = isArray(exclusive) ? exclusive : [exclusive];
-    for (var prop in namespaces) {
-      for (var i = 0, len = exclusive.length; i < len; i++) {
-        var reg = new RegExp('^' + exclusive[i]);
-        if (!reg.test(prop)) {
-          var arr = prop.split('.'),
-              node = namespaces[prop];
-          for (var j = 0, depth = arr.length; j < depth; j++) {
-            node = node[arr[j]];
-          }
-          for (var className in node) {
-            if (isFunction(node[className])) {
-              node[className].prototype[config.context] = this;
+  hasClass: function (key) {
+    return key in this.constructors;
+  },
+  hasSingleton: function (key) {
+    return key in this.singletons;
+  },
+  hasValue: function (key) {
+    return key in this.voMap;
+  },
+  inject: function (target) {
+    for (var name in target) {
+      // only inject props with prefix
+      if (!isString(target[name]) || name.indexOf(this.config.injectPrefix) !== 0) {
+        continue;
+      }
+      var key = name.substr(this.config.injectPrefix.length),
+          value = target[name],
+          type = parseNamespace(value);
+      if (type) { // has specific type
+        if (isFunction(type)) { // need (to create) instance
+          // check if exist
+          var isExist = false;
+          for (var constructor in this.constructors) {
+            if (this.getClass(constructor) === type) {
+              if (this.hasSingleton(constructor)) {
+                target[name] = this.getSingleton(constructor);
+              } else {
+                target[name] = this.createInstance(constructor);
+                this.mapSingleton(constructor, target[name]);
+              }
+              isExist = true;
+              break;
             }
           }
+          if (!isExist) {
+            target[name] = this.createInstance(type);
+            this.mapSingleton(value, type, target[name]);
+            continue;
+          }
+        } else {
+          this.mapValue(value, type);
+          target[name] = type;
+          continue;
         }
       }
+      if (this.voMap.hasOwnProperty(key)) {
+        target[name] = this.getValue(key);
+        continue;
+      }
+      if (this.singletons.hasOwnProperty(key)) {
+        target[name] = this.getSingleton(key);
+        continue;
+      }
     }
+    if (target.postConstruct && isFunction(target.postConstruct)) {
+      target.postConstruct();
+    }
+    return this;
   },
-  inject: function (constructor) {
-    if (isFunction(constructor)) {
-      constructor.prototype[config.context] = this;
-    } else {
-      constructor[config.context] = this;
+  mapClass: function (key, constructor) {
+    if (!isFunction(constructor)) {
+      throw new Error(Errors.NOT_A_CLASS);
     }
+    if (this.hasClass(key)) {
+      throw new Error(Errors.SOMETHING_EXIST);
+    }
+    this.constructors[key] = constructor;
+    return this;
   },
   mapEvent: function (event, command, context) {
     this.eventMap[event] = this.eventMap.event || [];
@@ -144,15 +223,35 @@ Context.prototype = {
       context: context
     });
   },
-  mapSingleton: function (className, alias) {
-    if (isFunction(className)) {
-      this.constructors[alias] = className;
-    } else {
-      this.singletons[alias] = className;
+  mapSingleton: function (alias, constructor, instance) {
+    if (this.hasSingleton(alias)) {
+      throw new Error(Errors.SOMETHING_EXIST);
     }
+    if (instance) {
+      this.constructors[alias] = constructor;
+      this.singletons[alias] = instance;
+    }
+    if (isFunction(constructor)) {
+      this.constructors[alias] = constructor;
+    } else {
+      this.singletons[alias] = constructor;
+    }
+    return this;
   },
   mapValue: function (key, value) {
-    this.kvMap[key] = value;
+    if (this.hasValue(key)) {
+      throw new Error(Errors.SOMETHING_EXIST);
+    }
+    this.voMap[key] = value;
+    return this;
+  },
+  removeClass: function (key) {
+    this.constructors[key] = null;
+    delete this.constructors[key];
+  },
+  removeValue: function (key) {
+    this.voMap[key] = null;
+    delete this.voMap[key];
   },
   start: function (callback) {
     Packager.start(callback, this);
@@ -275,3 +374,5 @@ var Packager = {
     this.loadNext();
   }
 };
+
+}(this));

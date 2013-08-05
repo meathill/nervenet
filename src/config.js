@@ -7,8 +7,6 @@
  * @since 0.1
  */
 var config = {
-  context: 'app',
   dir: 'js',
-  injectPrefix: '$',
-  isAjax: true
+  injectPrefix: '$'
 };

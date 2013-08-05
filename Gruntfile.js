@@ -13,12 +13,16 @@ module.exports = function (grunt) {
       all: {
         dest: 'Nervenet.js',
         src: [
+          'src/intro.js',
+
           'src/utils.js',
           'src/core.js',
           'src/config.js',
 
           'src/Context.js',
-          'src/Packager.js'
+          'src/Packager.js',
+
+          'src/outro.js'
         ]
       }
     },
@@ -33,7 +37,6 @@ module.exports = function (grunt) {
         report: 'gzip',
         sourceMap: 'Nervenet.min.map',
         banner: '/* <%= pkg.name %> ver.<%= pkg.version %>  (c) 2013 Meathill  MIT*/\n',
-        wrap: 'Nervenet'
       },
       target: {
         files: {
