@@ -25,5 +25,6 @@ var Nervenet = global.Nervenet = {
       root = root[arr[i]];
     }
     return root;
-  }
+  },
+  parseNamespace: parseNamespace
 };

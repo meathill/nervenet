@@ -36,7 +36,7 @@ module.exports = function (grunt) {
       options: {
         report: 'gzip',
         sourceMap: 'Nervenet.min.map',
-        banner: '/* <%= pkg.name %> ver.<%= pkg.version %>  (c) 2013 Meathill  MIT*/\n',
+        banner: '/* <%= pkg.name %> ver.<%= pkg.version %>  (c) 2013 Meathill  MIT\n build at <%= grunt.template.today("yyyy-mm-dd hh:mm:ss") %>*/ \n',
       },
       target: {
         files: {

@@ -89,7 +89,8 @@ var Nervenet = global.Nervenet = {
       root = root[arr[i]];
     }
     return root;
-  }
+  },
+  parseNamespace: parseNamespace
 };
 /**
  * Created with JetBrains WebStorm.
@@ -114,47 +115,47 @@ var config = {
 'use strict';
 
 var Context = function () {
-  this.singletons = {};
-  this.constructors = {};
+  this.mappings = {};
   this.eventMap = {};
-  this.voMap = {};
+  this.valueMap = {};
   this.config = extend({}, config);
 };
+var MappingVO = function (klass, instance) {
+  this.klass = klass;
+  this.instance = instance;
+}
 var Errors = {
   NOT_A_CLASS: '[Error Nervenet.context.mapClass] the second parameter is invalid, a class is expected',
   SOMETHING_EXIST: '[Error Nerver.context.mapClass/mapSingleton/mapValue] the mapping already exist'
 };
 Context.prototype = {
-  createInstance: function (constructor) {
+  createInstance: function (klass) {
     var args = slice.call(arguments, 1);
-    constructor = isString(constructor) ? this.getClass(constructor) : constructor;
-    var instance = new constructor(args);
+    klass = isString(klass) ? this.getClass(klass) : klass;
+    var instance = new klass(args);
     this.inject(instance);
     return instance;
   },
   getClass: function (key) {
     return this.mappings[key].klass;
   },
-  getSingleton: function (alias) {
-    if (!(alias in this.singletons)) {
-      if (!(alias in this.constructors)) {
-        throw new Error('no such class');
-      }
-      this.singletons[alias] = this.createInstance(alias);
+  getSingleton: function (key) {
+    if (!(key in this.mappings)) {
+      throw new Error('no such class');
     }
-    return this.singletons[alias];
+    if (!this.mappings[key].instance) {
+      this.mappings[key].instance = this.createInstance(key);
+    }
+    return this.mappings[key].instance;
   },
   getValue: function (key) {
-    return this.voMap[key];
+    return this.valueMap[key];
   },
-  hasClass: function (key) {
-    return key in this.constructors;
-  },
-  hasSingleton: function (key) {
-    return key in this.singletons;
+  hasMapping: function (key) {
+    return key in this.mappings;
   },
   hasValue: function (key) {
-    return key in this.voMap;
+    return key in this.valueMap;
   },
   inject: function (target) {
     for (var name in target) {
@@ -169,13 +170,13 @@ Context.prototype = {
         if (isFunction(type)) { // need (to create) instance
           // check if exist
           var isExist = false;
-          for (var vo in this.mappings) {
-            if (this.getClass(constructor) === type) {
-              if (this.hasSingleton(constructor)) {
-                target[name] = this.getSingleton(constructor);
+          for (var key in this.mappings) {
+            if (this.getClass(key) === type) {
+              if (this.getSingleton(key)) {
+                target[name] = this.getSingleton(key);
               } else {
-                target[name] = this.createInstance(constructor);
-                this.mapSingleton(constructor, target[name]);
+                target[name] = this.createInstance(key);
+                this.mapSingleton(key, target[name]);
               }
               isExist = true;
               break;
@@ -192,11 +193,11 @@ Context.prototype = {
           continue;
         }
       }
-      if (this.voMap.hasOwnProperty(key)) {
+      if (key in this.valueMap) {
         target[name] = this.getValue(key);
         continue;
       }
-      if (this.singletons.hasOwnProperty(key)) {
+      if (key in this.mappings) {
         target[name] = this.getSingleton(key);
         continue;
       }
@@ -210,10 +211,10 @@ Context.prototype = {
     if (!isFunction(constructor)) {
       throw new Error(Errors.NOT_A_CLASS);
     }
-    if (this.hasClass(key)) {
+    if (this.hasMapping(key)) {
       throw new Error(Errors.SOMETHING_EXIST);
     }
-    this.constructors[key] = constructor;
+    this.mappings[key] = new MappingVO(constructor);
     return this;
   },
   mapEvent: function (event, command, context) {
@@ -224,17 +225,16 @@ Context.prototype = {
     });
   },
   mapSingleton: function (alias, constructor, instance) {
-    if (this.hasSingleton(alias)) {
+    if (this.hasMapping(alias)) {
       throw new Error(Errors.SOMETHING_EXIST);
     }
     if (instance) {
-      this.constructors[alias] = constructor;
-      this.singletons[alias] = instance;
+      this.mappings[alias] = new MappingVO(constructor, instance);
     }
     if (isFunction(constructor)) {
-      this.constructors[alias] = constructor;
+      this.mappings[alias] = new MappingVO(constructor);
     } else {
-      this.singletons[alias] = constructor;
+      this.mappings[alias] = new MappingVO(null, constructor);
     }
     return this;
   },
@@ -242,16 +242,16 @@ Context.prototype = {
     if (this.hasValue(key)) {
       throw new Error(Errors.SOMETHING_EXIST);
     }
-    this.voMap[key] = value;
+    this.valueMap[key] = value;
     return this;
   },
-  removeClass: function (key) {
-    this.constructors[key] = null;
-    delete this.constructors[key];
+  removeMapping: function (key) {
+    this.mappings[key] = null;
+    delete this.mappings[key];
   },
   removeValue: function (key) {
-    this.voMap[key] = null;
-    delete this.voMap[key];
+    this.valueMap[key] = null;
+    delete this.valueMap[key];
   },
   start: function (callback) {
     Packager.start(callback, this);
