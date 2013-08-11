@@ -13,6 +13,8 @@ var Context = function () {
   this.eventMap = {};
   this.valueMap = {};
   this.config = extend({}, config);
+
+  this.mapValue('context', this);
 };
 var MappingVO = function (klass, instance) {
   this.klass = klass;

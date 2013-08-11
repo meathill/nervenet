@@ -26,5 +26,10 @@ var Nervenet = global.Nervenet = {
     }
     return root;
   },
-  parseNamespace: parseNamespace
+  parseNamespace: parseNamespace,
+  setConfig: function (key, value) {
+    if (key in config) {
+      config[key] = value;
+    }
+  }
 };

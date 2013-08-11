@@ -90,7 +90,12 @@ var Nervenet = global.Nervenet = {
     }
     return root;
   },
-  parseNamespace: parseNamespace
+  parseNamespace: parseNamespace,
+  setConfig: function (key, value) {
+    if (key in config) {
+      config[key] = value;
+    }
+  }
 };
 /**
  * Created with JetBrains WebStorm.
@@ -119,6 +124,8 @@ var Context = function () {
   this.eventMap = {};
   this.valueMap = {};
   this.config = extend({}, config);
+
+  this.mapValue('context', this);
 };
 var MappingVO = function (klass, instance) {
   this.klass = klass;
