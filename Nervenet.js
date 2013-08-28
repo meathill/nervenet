@@ -139,7 +139,8 @@ Context.prototype = {
   createInstance: function (klass) {
     var args = slice.call(arguments, 1);
     klass = isString(klass) ? this.getClass(klass) : klass;
-    var instance = new klass(args);
+    var instance = Object.create(klass.prototype);
+    klass.apply(instance, args);
     this.inject(instance);
     return instance;
   },
@@ -167,7 +168,7 @@ Context.prototype = {
   inject: function (target) {
     for (var name in target) {
       // only inject props with prefix
-      if (!isString(target[name]) || name.indexOf(this.config.injectPrefix) !== 0) {
+      if (target[name] !== null && !isString(target[name]) || name.indexOf(this.config.injectPrefix) !== 0) {
         continue;
       }
       var key = name.substr(this.config.injectPrefix.length),
