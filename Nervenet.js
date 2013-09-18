@@ -211,7 +211,8 @@ Context.prototype = {
       }
     }
     if (target.postConstruct && isFunction(target.postConstruct)) {
-      target.postConstruct();
+      var args = slice.call(arguments, 1);
+      target.postConstruct.apply(target, args);
     }
     return this;
   },
