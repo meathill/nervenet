@@ -7,11 +7,17 @@
  * @since 0.1
  */
 
-function Sample() {
-  this.author = '';
+function Sample(author) {
+  this.author = author || '';
   this.$author = '';
+  this.writer = '{{$author}}';
   this.$book = '';
   this.$store = 'BookStore';
+  this.store2 = '{{$somestore}}';
+}
+function SampleObj(options) {
+  this.author = options.author;
+  this.writer = options.writer;
 }
 function Book() {
   this.title = 'The Song of Fire and Ice';
@@ -49,13 +55,15 @@ test('inject', function () {
     .mapValue(KEY, Author)
     .inject(instance);
   ok(instance.$author === Author, 'injected!');
+  ok(instance.$writer === Author, 'injected by defination');
 
   context.config.injectPrefix = '';
   context.inject(instance);
   ok(instance.author === Author, 'injected again!');
+  ok(instance.writer === Author, 'injected by defination again');
 });
 
-test('inject instance', function () {
+test('inject singleton', function () {
   var context = new Context(),
       instance = new Sample(),
       book = new Book();
@@ -72,6 +80,7 @@ test('inject with specific type', function () {
     .mapClass('somestore', BookStore)
     .inject(instance);
   ok(instance.$store instanceof BookStore, 'inject with BookStore');
+  ok(instance.store2 instanceof BookStore, 'inject with BookStore');
 });
 
 test('map class', function () {
@@ -86,9 +95,17 @@ test('map class', function () {
 test('create instance', function () {
   var context = new Context();
   context.mapValue(KEY, Author);
+
   var instance = context.createInstance(Sample);
   ok(instance instanceof Sample, 'create by Constructor');
   ok(instance.$author === Author, 'injected!');
+
+  var instance2 = context.createInstance(Sample, KEY);
+  ok(instance2.$author === Author, 'injected from params');
+
+  var instance3 = context.createInstance(SampleObj, {'$author': '', writer: '{{$author}}'});
+  ok(instance3.author === Author, 'injected from init obj');
+  ok(instance3.writer === Author, 'injected from init obj spec');
 
   context.mapClass('sample', Sample);
   instance = context.createInstance('sample');
