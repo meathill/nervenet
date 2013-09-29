@@ -27,6 +27,11 @@ var Errors = {
 Context.prototype = {
   createInstance: function (klass) {
     var args = slice.call(arguments, 1);
+    for (var i = 0, len = args.length; i < len; i++) {
+      if (isObject(args[i])) {
+        this.inject(args[i]);
+      }
+    }
     klass = isString(klass) ? this.getClass(klass) : klass;
     var instance = Object.create(klass.prototype);
     klass.apply(instance, args);
@@ -55,48 +60,56 @@ Context.prototype = {
     return key in this.valueMap;
   },
   inject: function (target) {
+    var prefix = this.config.injectPrefix === '$' ? '\\$' : this.config.injectPrefix,
+        preReg = new RegExp('^' + prefix + '([\\w\\-]+)$'),
+        valueReg = new RegExp('^{{' + prefix + '([\\w\\-]+)}}$');
     for (var name in target) {
-      // only inject props with prefix
-      if (target[name] !== null && !isString(target[name]) || name.indexOf(this.config.injectPrefix) !== 0) {
-        continue;
-      }
-      var key = name.substr(this.config.injectPrefix.length),
-          value = target[name],
-          type = parseNamespace(value);
-      if (type) { // has specific type
-        if (isFunction(type)) { // need (to create) instance
-          // check if exist
-          var isExist = false;
-          for (var key in this.mappings) {
-            if (this.getClass(key) === type) {
-              if (this.getSingleton(key)) {
-                target[name] = this.getSingleton(key);
-              } else {
-                target[name] = this.createInstance(key);
-                this.mapSingleton(key, target[name]);
+      // get specific value first
+      var value = target[name];
+      if (isString(value) && value.length > 0) {
+        if (valueReg.test(value)) {
+          var key = value.match(valueReg)[1];
+          target[name] = this.getValue(key) || (key in this.mappings && this.getSingleton(key));
+          continue;
+        }
+
+        var klass = parseNamespace(value);
+        if (klass) { // has specific type
+          if (isFunction(klass)) { // need (to create) instance
+            // check if exist
+            var isExist = false;
+            for (var key in this.mappings) {
+              if (this.getClass(key) === klass) {
+                if (this.getSingleton(key)) {
+                  target[name] = this.getSingleton(key);
+                } else {
+                  target[name] = this.createInstance(key);
+                  this.mapSingleton(key, target[name]);
+                }
+                isExist = true;
+                break;
               }
-              isExist = true;
-              break;
             }
+            if (!isExist) {
+              target[name] = this.createInstance(klass);
+              this.mapSingleton(value, klass, target[name]);
+            }
+          } else {
+            this.mapValue(value, klass);
+            target[name] = klass;
           }
-          if (!isExist) {
-            target[name] = this.createInstance(type);
-            this.mapSingleton(value, type, target[name]);
-            continue;
-          }
-        } else {
-          this.mapValue(value, type);
-          target[name] = type;
           continue;
         }
       }
-      if (key in this.valueMap) {
-        target[name] = this.getValue(key);
-        continue;
-      }
-      if (key in this.mappings) {
-        target[name] = this.getSingleton(key);
-        continue;
+
+      // then search in name
+      if (preReg.test(name)) {
+        var key = name.match(preReg)[1];
+        if (key in this.valueMap) {
+          target[name] = this.getValue(key);
+        } else if (key in this.mappings) {
+          target[name] = this.getSingleton(key);
+        }
       }
     }
     if (target.postConstruct && isFunction(target.postConstruct)) {

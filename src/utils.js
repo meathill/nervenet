@@ -10,17 +10,20 @@
 var slice = Array.prototype.slice,
     toString = Object.prototype.toString;
 
-function isFunction(obj) {
-  return toString.call(obj) === '[object Function]';
-}
-function isString(obj) {
-  return toString.call(obj) === '[object String]';
-}
 function isArray(obj) {
   if ('isArray' in Array) {
     return Array.isArray(obj);
   }
   return Object.prototype.toString.call(obj) === '[object Array]';
+}
+function isFunction(obj) {
+  return toString.call(obj) === '[object Function]';
+}
+function isObject(obj) {
+  return obj === Object(obj);
+}
+function isString(obj) {
+  return toString.call(obj) === '[object String]';
 }
 function inherit(superClass, subClass) {
   var prototype = Object(superClass.prototype);
@@ -37,12 +40,13 @@ function extend(obj) {
   }
   return obj;
 }
-function parseNamespace(str) {
+function parseNamespace(str, root) {
   if (!str) {
     return false;
   }
   var arr = str.split('.'),
-      root = global[arr[0]];
+      root = root || global;
+  root = root[arr[0]];
   for (var i = 1, len = arr.length; i < len; i++) {
     if (!(arr[i] in root)) {
       return false;

@@ -16,7 +16,7 @@ function Sample(author) {
   this.store2 = '{{$somestore}}';
 }
 function SampleObj(options) {
-  this.author = options.author;
+  this.author = options.$author;
   this.writer = options.writer;
 }
 function Book() {
@@ -55,7 +55,7 @@ test('inject', function () {
     .mapValue(KEY, Author)
     .inject(instance);
   ok(instance.$author === Author, 'injected!');
-  ok(instance.$writer === Author, 'injected by defination');
+  ok(instance.writer === Author, 'injected by defination');
 
   context.config.injectPrefix = '';
   context.inject(instance);
