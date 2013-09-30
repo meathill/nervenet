@@ -7,7 +7,7 @@
  * @since 0.1
  */
 var REG = /(import|extend) ((\w+\.)+(\w+))/ig,
-    index = -1,
+    index = 0,
     queue = [],
     ordered = [],
     startup = {},
@@ -18,6 +18,7 @@ var REG = /(import|extend) ((\w+\.)+(\w+))/ig,
 xhr.onload = function () {
   queue[index].content = this.response;
   Packager.parse(this.response);
+  index++;
   Packager.loadNext();
 }
 function getPath(str) {
@@ -38,13 +39,13 @@ function createScript(str, className) {
 var Packager = {
   createNodes: function () {
     for (var i = 0, len = ordered.length; i < len; i++) {
-      for (var j = 0; j < len; j++) {
+      for (var j = 0, qlen = queue.length; j < qlen; j++) {
         if (queue[j].fullname === ordered[i]) {
+          createScript(queue[j].content, queue[j].className);
+          queue.splice(j, 1);
           break;
         }
       }
-      createScript(queue[j].content, queue[j].className);
-      queue.splice(j, 1);
     }
 
     if ('func' in startup) {
@@ -52,7 +53,6 @@ var Packager = {
     }
   },
   loadNext: function () {
-    index++;
     if (index >= queue.length) {
       this.createNodes();
       return;
@@ -81,11 +81,8 @@ var Packager = {
             ordered.push(fullname);
           } else {
             var sub = queue[index].fullname,
-                j = 0;
-            while (ordered[j] !== sub) {
-              j++;
-            }
-            ordered.splice(j, 0, fullname);
+                offset = ordered.indexOf(sub);
+            ordered.splice(offset, 0, fullname);
           }
         }
       }
