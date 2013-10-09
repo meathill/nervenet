@@ -128,6 +128,11 @@ test('map singleton instance', function () {
   var test1 = context.getSingleton('sample'),
       test2 = context.getSingleton('sample');
   ok(test1 === test2, 'It is singleton');
+
+  context.mapSingleton('sample2', Sample, 'Meathill');
+  var test3 = context.getSingleton('sample2');
+  ok(test3 instanceof Sample);
+  ok(test3.author === 'Meathill');
 });
 
 test('map event', function () {

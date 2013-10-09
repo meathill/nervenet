@@ -19,7 +19,7 @@ var Context = function () {
 var MappingVO = function (klass, instance) {
   this.klass = klass;
   this.instance = instance;
-}
+};
 var Errors = {
   NOT_A_CLASS: '[Error Nervenet.context.mapClass] the second parameter is invalid, a class is expected',
   SOMETHING_EXIST: '[Error Nerver.context.mapClass/mapSingleton/mapValue] the mapping already exist'
@@ -30,6 +30,10 @@ Context.prototype = {
     for (var i = 0, len = args.length; i < len; i++) {
       if (isObject(args[i])) {
         this.inject(args[i]);
+        continue;
+      }
+      if (isString(args[i])) {
+        args[i] = this.getInjectValue(args[i]);
       }
     }
     klass = isString(klass) ? this.getClass(klass) : klass;
@@ -41,12 +45,67 @@ Context.prototype = {
   getClass: function (key) {
     return this.mappings[key].klass;
   },
+  getInjectValue: function (key, value) {
+    var prefix = this.config.injectPrefix === '$' ? '\\$' : this.config.injectPrefix,
+        preReg = new RegExp('^' + prefix + '([\\w\\-]+)$'),
+        valueReg = new RegExp('^{{' + prefix + '([\\w\\-]+)}}$');
+
+    // get specific value first
+    if (isString(value) && value.length > 0) {
+      if (valueReg.test(value)) {
+        var mapKey = value.match(valueReg)[1];
+        return this.getValue(mapKey) || (mapKey in this.mappings && this.getSingleton(mapKey));
+      }
+
+      var klass = parseNamespace(value);
+      if (klass) { // has specific type
+        if (isFunction(klass)) { // need (to create) instance
+          var isExist = false;
+          for (var mapKey in this.mappings) {
+            if (this.getClass(mapKey) === klass) {
+              if (this.getSingleton(mapKey)) {
+                return this.getSingleton(mapKey);
+              } else {
+                var instance = this.createInstance(mapKey);
+                this.mapSingleton(mapKey, instance);
+                return instance;
+              }
+              isExist = true;
+              break;
+            }
+          }
+          if (!isExist) {
+            var instance = this.createInstance(klass);
+            this.mapSingleton(value, klass, instance);
+            return instance;
+          }
+        } else {
+          this.mapValue(value, klass);
+          return klass;
+        }
+      }
+    }
+
+    // then search in key
+    if (preReg.test(key)) {
+      var key = key.match(preReg)[1];
+      if (key in this.valueMap) {
+        return this.getValue(key);
+      } else if (key in this.mappings) {
+        return this.getSingleton(key);
+      }
+    }
+
+    return value || key;
+  },
   getSingleton: function (key) {
     if (!(key in this.mappings)) {
       throw new Error('no such class');
     }
     if (!this.mappings[key].instance) {
-      this.mappings[key].instance = this.createInstance(key);
+      var args = slice.call(arguments, 1);
+      args.unshift(key);
+      this.mappings[key].instance = this.createInstance.apply(this, args);
     }
     return this.mappings[key].instance;
   },
@@ -60,57 +119,8 @@ Context.prototype = {
     return key in this.valueMap;
   },
   inject: function (target) {
-    var prefix = this.config.injectPrefix === '$' ? '\\$' : this.config.injectPrefix,
-        preReg = new RegExp('^' + prefix + '([\\w\\-]+)$'),
-        valueReg = new RegExp('^{{' + prefix + '([\\w\\-]+)}}$');
-    for (var name in target) {
-      // get specific value first
-      var value = target[name];
-      if (isString(value) && value.length > 0) {
-        if (valueReg.test(value)) {
-          var key = value.match(valueReg)[1];
-          target[name] = this.getValue(key) || (key in this.mappings && this.getSingleton(key));
-          continue;
-        }
-
-        var klass = parseNamespace(value);
-        if (klass) { // has specific type
-          if (isFunction(klass)) { // need (to create) instance
-            // check if exist
-            var isExist = false;
-            for (var key in this.mappings) {
-              if (this.getClass(key) === klass) {
-                if (this.getSingleton(key)) {
-                  target[name] = this.getSingleton(key);
-                } else {
-                  target[name] = this.createInstance(key);
-                  this.mapSingleton(key, target[name]);
-                }
-                isExist = true;
-                break;
-              }
-            }
-            if (!isExist) {
-              target[name] = this.createInstance(klass);
-              this.mapSingleton(value, klass, target[name]);
-            }
-          } else {
-            this.mapValue(value, klass);
-            target[name] = klass;
-          }
-          continue;
-        }
-      }
-
-      // then search in name
-      if (preReg.test(name)) {
-        var key = name.match(preReg)[1];
-        if (key in this.valueMap) {
-          target[name] = this.getValue(key);
-        } else if (key in this.mappings) {
-          target[name] = this.getSingleton(key);
-        }
-      }
+    for (var key in target) {
+      target[key] = this.getInjectValue(key, target[key]);
     }
     if (target.postConstruct && isFunction(target.postConstruct)) {
       var args = slice.call(arguments, 1);
@@ -140,7 +150,15 @@ Context.prototype = {
       throw new Error(Errors.SOMETHING_EXIST);
     }
     if (instance) {
-      this.mappings[alias] = new MappingVO(constructor, instance);
+      if (instance instanceof constructor) {
+        this.mappings[alias] = new MappingVO(constructor, instance);
+      } else {
+        var args = slice.call(arguments, 2);
+        args.unshift(constructor);
+        instance = this.createInstance.apply(this, args);
+        this.mappings[alias] = new MappingVO(constructor, instance);
+      }
+      return this;
     }
     if (isFunction(constructor)) {
       this.mappings[alias] = new MappingVO(constructor);
