@@ -1,5 +1,5 @@
 {
-  "name": "NerveNet",
+  "name": "nervenet",
   "version": "0.1.0",
   "description": "A nerve net help every parts of project work together",
   "keywords": ["framework", "namespace", "event bus", "dependency inject"],
