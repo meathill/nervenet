@@ -26,6 +26,7 @@ var Nervenet = global.Nervenet = {
     }
     return root;
   },
+  inherit: inherit,
   parseNamespace: parseNamespace,
   setConfig: function (key, value) {
     if (key in config) {

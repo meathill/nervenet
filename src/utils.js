@@ -25,8 +25,13 @@ function isObject(obj) {
 function isString(obj) {
   return toString.call(obj) === '[object String]';
 }
+function object(obj) {
+  function F() {}
+  F.prototype = obj;
+  return new F();
+}
 function inherit(superClass, subClass) {
-  var prototype = Object(superClass.prototype);
+  var prototype = object(superClass.prototype);
   prototype.constructor = subClass;
   subClass.prototype = prototype;
 }

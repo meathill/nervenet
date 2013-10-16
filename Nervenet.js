@@ -36,8 +36,13 @@ function isObject(obj) {
 function isString(obj) {
   return toString.call(obj) === '[object String]';
 }
+function object(obj) {
+  function F() {}
+  F.prototype = obj;
+  return new F();
+}
 function inherit(superClass, subClass) {
-  var prototype = Object(superClass.prototype);
+  var prototype = object(superClass.prototype);
   prototype.constructor = subClass;
   subClass.prototype = prototype;
 }
@@ -76,7 +81,7 @@ function parseNamespace(str, root) {
 
 var namespaces = {};
 var Nervenet = global.Nervenet = {
-  VERSION: '0.1.0',
+  VERSION: '0.1.1',
   createContext: function () {
     return new Context();
   },
@@ -93,6 +98,7 @@ var Nervenet = global.Nervenet = {
     }
     return root;
   },
+  inherit: inherit,
   parseNamespace: parseNamespace,
   setConfig: function (key, value) {
     if (key in config) {
@@ -151,7 +157,7 @@ Context.prototype = {
       }
     }
     klass = isString(klass) ? this.getClass(klass) : klass;
-    var instance = Object.create(klass.prototype);
+    var instance = 'create' in Object ? Object.create(klass.prototype) : object(klass.prototype);
     klass.apply(instance, args);
     this.inject(instance);
     return instance;
@@ -267,8 +273,7 @@ Context.prototype = {
       if (instance instanceof constructor) {
         this.mappings[alias] = new MappingVO(constructor, instance);
       } else {
-        var args = slice.call(arguments, 2);
-        args.unshift(constructor);
+        var args = slice.call(arguments, 1);
         instance = this.createInstance.apply(this, args);
         this.mappings[alias] = new MappingVO(constructor, instance);
       }

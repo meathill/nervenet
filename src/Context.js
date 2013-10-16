@@ -37,7 +37,7 @@ Context.prototype = {
       }
     }
     klass = isString(klass) ? this.getClass(klass) : klass;
-    var instance = Object.create(klass.prototype);
+    var instance = 'create' in Object ? Object.create(klass.prototype) : object(klass.prototype);
     klass.apply(instance, args);
     this.inject(instance);
     return instance;
