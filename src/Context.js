@@ -153,8 +153,7 @@ Context.prototype = {
       if (instance instanceof constructor) {
         this.mappings[alias] = new MappingVO(constructor, instance);
       } else {
-        var args = slice.call(arguments, 2);
-        args.unshift(constructor);
+        var args = slice.call(arguments, 1);
         instance = this.createInstance.apply(this, args);
         this.mappings[alias] = new MappingVO(constructor, instance);
       }
