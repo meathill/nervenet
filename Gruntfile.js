@@ -19,6 +19,7 @@ module.exports = function (grunt) {
           'src/core.js',
           'src/config.js',
 
+          'src/Mediator.js',
           'src/Context.js',
           'src/Packager.js',
 

@@ -2,22 +2,27 @@
 <html>
 <head>
   <meta charset="utf-8">
-  <title>Context测试</title>
+  <title>Mediator测试</title>
   <link rel="stylesheet" href="../node_modules/qunitjs/qunit/qunit.css">
   <script>
-    var exports = {},
-        global = this;
+    var global = this
+      , Nervenet = {};
   </script>
 </head>
 <body>
   <div id="qunit"></div>
   <div id="qunit-fixture"></div>
+  <div id="my-dom">
+    <div class="some">
+      <button>haha</button>
+    </div>
+  </div>
   <script src="../node_modules/qunitjs/qunit/qunit.js"></script>
-  <script src="../src/utils.js"></script>
-  <script src="../src/core.js"></script>
-  <script src="../src/config.js"></script>
+  <script src="../node_modules/jquery/dist/jquery.min.js"></script>
   <script src="../src/Mediator.js"></script>
+  <script src="../src/config.js"></script>
+  <script src="../src/utils.js"></script>
   <script src="../src/Context.js"></script>
-  <script src="context.js"></script>
+  <script src="mediator.js"></script>
 </body>
 </html>

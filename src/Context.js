@@ -13,8 +13,10 @@ var Context = function () {
   this.eventMap = {};
   this.valueMap = {};
   this.config = extend({}, config);
+  this.mediatorMap = new Mediator();
 
   this.mapValue('context', this);
+  this.mapValue('mediatorMap', this.mediatorMap);
 };
 var MappingVO = function (klass, instance) {
   this.klass = klass;
