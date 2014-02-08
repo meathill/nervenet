@@ -22,7 +22,8 @@ var MappingVO = function (klass, instance) {
   this.klass = klass;
   this.instance = instance;
 };
-var Errors = {
+Context.errors = {
+  NOT_EXIST: '[Error Nervenet.context.getSingleton] the key doesn\'t exist',
   NOT_A_CLASS: '[Error Nervenet.context.mapClass] the second parameter is invalid, a class is expected',
   SOMETHING_EXIST: '[Error Nerver.context.mapClass/mapSingleton/mapValue] the mapping already exist'
 };
@@ -102,7 +103,7 @@ Context.prototype = {
   },
   getSingleton: function (key) {
     if (!(key in this.mappings)) {
-      throw new Error('no such class');
+      throw new Error(Context.errors.NOT_EXIST);
     }
     if (!this.mappings[key].instance) {
       var args = slice.call(arguments, 1);
@@ -132,10 +133,10 @@ Context.prototype = {
   },
   mapClass: function (key, constructor) {
     if (!isFunction(constructor)) {
-      throw new Error(Errors.NOT_A_CLASS);
+      throw new Error(Context.errors.NOT_A_CLASS);
     }
     if (this.hasMapping(key)) {
-      throw new Error(Errors.SOMETHING_EXIST);
+      throw new Error(Context.errors.SOMETHING_EXIST);
     }
     this.mappings[key] = new MappingVO(constructor);
     return this;
@@ -149,7 +150,7 @@ Context.prototype = {
   },
   mapSingleton: function (alias, constructor, instance) {
     if (this.hasMapping(alias)) {
-      throw new Error(Errors.SOMETHING_EXIST);
+      throw new Error(Context.errors.SOMETHING_EXIST);
     }
     if (instance) {
       if (instance instanceof constructor) {
@@ -170,7 +171,7 @@ Context.prototype = {
   },
   mapValue: function (key, value) {
     if (this.hasValue(key)) {
-      throw new Error(Errors.SOMETHING_EXIST);
+      throw new Error(Context.errors.SOMETHING_EXIST);
     }
     this.valueMap[key] = value;
     return this;

@@ -121,23 +121,37 @@ var config = {
 /**
  * Created by meathill on 14-2-7.
  */
-var Mediator = function (container) {
+var Mediator = function () {
   this.maps = {};
-  this.container = container;
+};
+var defaults = {
+  force: false,
+  isSingleton: false
+};
+
+Mediator.errors = {
+  EXIST: '[Error Nervenet.mediator.map] The selector already exists, you cannot map 2 classes for 1 selector.'
 };
 
 Mediator.prototype = {
   $context: null,
   isBackbone: false,
   check: function (container) {
-    container = container || this.container;
     for (var selector in this.maps) {
       var nodes = container.querySelectorAll(selector)
-        , classes = this.maps[selector];
+        , vo = this.maps[selector];
       if (nodes.length > 0) {
         for (var i = 0, len = nodes.length; i < len; i++) {
-          for (var j = 0, jlen = classes.length; j < jlen; j++) {
-            this.createMediator(nodes[i], classes[j].klass, classes[j].options)
+          if (vo.isSingleton && vo.instance && 'setElement' in vo.instance) {
+            vo.instance.setElement(nodes[i]);
+            continue;
+          }
+          var mediator = this.createMediator(nodes[i], vo.klass, vo.options);
+          if (vo.isSingleton) {
+            vo.instance = mediator;
+          } else {
+            vo.instance = vo.instance || [];
+            vo.instance.push(mediator);
           }
         }
       }
@@ -151,18 +165,27 @@ Mediator.prototype = {
     }
     return mediator;
   },
+  getVo: function (selector) {
+    return this.map[selector];
+  },
   hasMap: function (selector) {
     return !!this.maps[selector];
   },
   map: function (selector, className, options) {
-    var classes = this.maps[selector] || [];
-    if (classes.indexOf(className) === -1) {
-      classes.push({
-        klass: className,
-        options: options
-      });
+    var vo = this.maps[selector];
+    options = extend(defaults, options);
+    if (vo && vo.klass !== className && !options.force) {
+      throw new Error(Mediator.errors.EXIST);
     }
-    this.maps[selector] = classes;
+    this.maps[selector] = {
+      klass: className,
+      isSingleton: options.isSingleton,
+      options: options
+    };
+    return this;
+  },
+  removeMap: function (selector) {
+    this.maps[selector] = null;
   }
 };
 /**
@@ -189,7 +212,8 @@ var MappingVO = function (klass, instance) {
   this.klass = klass;
   this.instance = instance;
 };
-var Errors = {
+Context.errors = {
+  NOT_EXIST: '[Error Nervenet.context.getSingleton] the key doesn\'t exist',
   NOT_A_CLASS: '[Error Nervenet.context.mapClass] the second parameter is invalid, a class is expected',
   SOMETHING_EXIST: '[Error Nerver.context.mapClass/mapSingleton/mapValue] the mapping already exist'
 };
@@ -269,7 +293,7 @@ Context.prototype = {
   },
   getSingleton: function (key) {
     if (!(key in this.mappings)) {
-      throw new Error('no such class');
+      throw new Error(Context.errors.NOT_EXIST);
     }
     if (!this.mappings[key].instance) {
       var args = slice.call(arguments, 1);
@@ -299,10 +323,10 @@ Context.prototype = {
   },
   mapClass: function (key, constructor) {
     if (!isFunction(constructor)) {
-      throw new Error(Errors.NOT_A_CLASS);
+      throw new Error(Context.errors.NOT_A_CLASS);
     }
     if (this.hasMapping(key)) {
-      throw new Error(Errors.SOMETHING_EXIST);
+      throw new Error(Context.errors.SOMETHING_EXIST);
     }
     this.mappings[key] = new MappingVO(constructor);
     return this;
@@ -316,7 +340,7 @@ Context.prototype = {
   },
   mapSingleton: function (alias, constructor, instance) {
     if (this.hasMapping(alias)) {
-      throw new Error(Errors.SOMETHING_EXIST);
+      throw new Error(Context.errors.SOMETHING_EXIST);
     }
     if (instance) {
       if (instance instanceof constructor) {
@@ -337,7 +361,7 @@ Context.prototype = {
   },
   mapValue: function (key, value) {
     if (this.hasValue(key)) {
-      throw new Error(Errors.SOMETHING_EXIST);
+      throw new Error(Context.errors.SOMETHING_EXIST);
     }
     this.valueMap[key] = value;
     return this;
