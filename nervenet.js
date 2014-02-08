@@ -125,8 +125,8 @@ var Mediator = function () {
   this.maps = {};
 };
 var defaults = {
-  force: false,
-  isSingleton: false
+  force: false, // 是否强制替换map的类
+  isSingle: false // 是否使用一个mediator管理所有节点
 };
 
 Mediator.errors = {
@@ -140,46 +140,56 @@ Mediator.prototype = {
     for (var selector in this.maps) {
       var nodes = container.querySelectorAll(selector)
         , vo = this.maps[selector];
-      if (nodes.length > 0) {
+      if (vo.isSingle) {
+        if (vo.instance && 'setElement' in vo.instance) {
+          vo.instance.setElement(nodes);
+        } else {
+          vo.instance = this.createMediator(nodes, vo.klass, vo.options);
+        }
+      } else {
+        vo.instance = vo.instance || [];
         for (var i = 0, len = nodes.length; i < len; i++) {
-          if (vo.isSingleton && vo.instance && 'setElement' in vo.instance) {
-            vo.instance.setElement(nodes[i]);
-            continue;
-          }
           var mediator = this.createMediator(nodes[i], vo.klass, vo.options);
-          if (vo.isSingleton) {
-            vo.instance = mediator;
-          } else {
-            vo.instance = vo.instance || [];
-            vo.instance.push(mediator);
-          }
+          vo.instance.push(mediator);
         }
       }
     }
   },
   createMediator: function (dom, className, options) {
-    var param = this.isBackbone ? {el: dom} : dom
-      , mediator = new className(param, options);
+    var mediator;
+    if (isArray(options)) {
+      mediator = 'create' in Object ? Object.create(className.prototype) : object(className.prototype);
+      options.unshift(dom);
+      className.apply(mediator, options);
+    } else {
+      var param = this.isBackbone ? extend({el: dom}, options) : dom;
+      mediator = new className(param, options);
+    }
+
     if (this.$context) {
       this.$context.inject(mediator);
     }
     return mediator;
   },
-  getVo: function (selector) {
-    return this.map[selector];
+  getVO: function (selector) {
+    return this.maps[selector];
   },
   hasMap: function (selector) {
     return !!this.maps[selector];
   },
   map: function (selector, className, options) {
-    var vo = this.maps[selector];
-    options = extend(defaults, options);
-    if (vo && vo.klass !== className && !options.force) {
-      throw new Error(Mediator.errors.EXIST);
+    var vo = this.maps[selector]
+      , flags  = extend({}, defaults, options);
+    if (vo && vo.klass !== className) {
+      if (flags.force) {
+        vo.instance = null;
+      } else {
+        throw new Error(Mediator.errors.EXIST);
+      }
     }
     this.maps[selector] = {
       klass: className,
-      isSingleton: options.isSingleton,
+      isSingle: flags.isSingle,
       options: options
     };
     return this;
