@@ -7,11 +7,13 @@
  * @since 0.1
  */
 module.exports = function (grunt) {
+  var BUILD = 'nervenet.js';
+
   grunt.initConfig({
     pkg: grunt.file.readJSON('package.json'),
     concat: {
       all: {
-        dest: 'Nervenet.js',
+        dest: BUILD,
         src: [
           'src/intro.js',
 
@@ -29,19 +31,19 @@ module.exports = function (grunt) {
     },
     replace: {
       version: {
-        src: ['Nervenet.js'],
-        dest: 'Nervenet.js'
+        src: [BUILD],
+        dest: BUILD
       }
     },
     uglify: {
       options: {
         report: 'gzip',
-        sourceMap: 'Nervenet.min.map',
+        sourceMap: 'nervenet.min.map',
         banner: '/* <%= pkg.name %> ver.<%= pkg.version %>  (c) 2013 Meathill  MIT\n build at <%= grunt.template.today("yyyy-mm-dd hh:mm:ss") %>*/ \n'
       },
       target: {
         files: {
-          'Nervenet.min.js': ['Nervenet.js']
+          'nervenet.min.js': BUILD
         }
       }
     }
@@ -49,7 +51,6 @@ module.exports = function (grunt) {
 
   grunt.loadNpmTasks('grunt-contrib-concat');
   grunt.loadNpmTasks('grunt-contrib-uglify');
-  grunt.loadNpmTasks('grunt-contrib-qunit');
 
   grunt.registerMultiTask('replace', 'Replace tokens', function () {
     var src = this.data.src,
