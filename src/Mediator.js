@@ -36,19 +36,8 @@ Mediator.prototype = {
     }
   },
   createMediator: function (dom, className, options) {
-    var mediator;
-    if (isArray(options)) {
-      mediator = 'create' in Object ? Object.create(className.prototype) : object(className.prototype);
-      options.unshift(dom);
-      className.apply(mediator, options);
-    } else {
-      var param = this.isBackbone ? extend({el: dom}, options) : dom;
-      mediator = new className(param, options);
-    }
-
-    if (this.$context) {
-      this.$context.inject(mediator);
-    }
+    var param = this.isBackbone ? extend({el: dom}, options) : dom
+      , mediator = this.$context.createInstance(className, param, options);
     return mediator;
   },
   getVO: function (selector) {

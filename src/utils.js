@@ -7,23 +7,27 @@
  * @since 0.1
  */
 
-var slice = Array.prototype.slice,
-    toString = Object.prototype.toString;
+var slice = Array.prototype.slice
+  , toString = Object.prototype.toString
+  , OBJECT_ARRAY = '[object Array]'
+  , OBJECT_FUNCTION = '[object Function]'
+  , OBJECT_OBJECT = '[object Object]'
+  , OBJECT_STRING = '[object String]';
 
 function isArray(obj) {
   if ('isArray' in Array) {
     return Array.isArray(obj);
   }
-  return Object.prototype.toString.call(obj) === '[object Array]';
+  return Object.prototype.toString.call(obj) === OBJECT_ARRAY;
 }
 function isFunction(obj) {
-  return toString.call(obj) === '[object Function]';
+  return toString.call(obj) === OBJECT_FUNCTION;
 }
 function isObject(obj) {
-  return obj === Object(obj);
+  return obj === Object(obj) && toString.call(obj) === OBJECT_OBJECT;
 }
 function isString(obj) {
-  return toString.call(obj) === '[object String]';
+  return toString.call(obj) === OBJECT_STRING;
 }
 function object(obj) {
   function F() {}

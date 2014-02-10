@@ -22,14 +22,14 @@ SomeMediator.prototype = {
       }
     }
   },
+  setElement: function (view) {
+    this.$view = $(view);
+  },
   button_clickHandler: function () {
     this.$view.find('button').val(this.token);
     if (this.$token) {
       alert(this.$token);
     }
-  },
-  removeHandler: function () {
-    this.$view.off();
   }
 };
 function ArgsMediator(view, username, age) {
@@ -60,62 +60,49 @@ test("remove mediator", 2, function () {
 });
 
 test("simple create mediator", function () {
-  var m = new Mediator()
+  var context = new Context()
     , options = {
       token: Date.now().toString()
     };
-  m.createMediator(NODE, SomeMediator, options);
+  context.mediatorMap.createMediator(NODE, SomeMediator, options);
   $('button', container).click();
 
   ok($('button', container).val() === options.token);
 });
 
-test("create mediator with args", 2, function () {
-  var username = 'Jim Raynor'
-    , age = 30
-    , m = new Mediator()
-    , options = [username, age]
-    , mediator = m.createMediator(NODE, ArgsMediator, options);
-  ok(mediator.username === username);
-  ok(mediator.age === age);
-});
-
 test("create single mediator for nodes", 2, function () {
-  var m = new Mediator()
+  var context = new Context()
     , options = {
       isSingle: true,
       token: Date.now().toString()
     };
-  m.map(SELECTOR, SomeMediator, options);
-  m.check(container);
+  context.mediatorMap.map(SELECTOR, SomeMediator, options);
+  context.mediatorMap.check(container);
   $('button', container).click();
 
   ok($('button', container).val() === options.token);
-  ok(m.getVO(SELECTOR).instance instanceof SomeMediator);
+  ok(context.mediatorMap.getVO(SELECTOR).instance instanceof SomeMediator);
 });
 
 test("create multiple mediator for nodes", 2, function () {
-  var m = new Mediator()
+  var context = new Context()
     , options = {
       token: Date.now().toString()
     };
-  m.map('.group', SomeMediator, options);
-  m.check(container);
+  context.mediatorMap.map('.group', SomeMediator, options);
+  context.mediatorMap.check(container);
 
-  ok(isArray(m.getVO('.group').instance));
-  ok(m.getVO('.group').instance.length === NODES.length);
+  ok(isArray(context.mediatorMap.getVO('.group').instance));
+  ok(context.mediatorMap.getVO('.group').instance.length === NODES.length);
 });
 
 test("inject view", function () {
   var context = new Context()
-    , m = new Mediator()
     , options = {
       token: Date.now().toString()
     };
-  context
-    .mapValue('token', 'abracadabra')
-    .inject(m);
-  var sm = m.createMediator(NODE, SomeMediator, options);
+  context.mapValue('token', 'abracadabra');
+  var sm = context.mediatorMap.createMediator(NODE, SomeMediator, options);
 
   ok(sm.$token === context.getValue('token'));
 });

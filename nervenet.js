@@ -18,23 +18,27 @@
  * @since 0.1
  */
 
-var slice = Array.prototype.slice,
-    toString = Object.prototype.toString;
+var slice = Array.prototype.slice
+  , toString = Object.prototype.toString
+  , OBJECT_ARRAY = '[object Array]'
+  , OBJECT_FUNCTION = '[object Function]'
+  , OBJECT_OBJECT = '[object Object]'
+  , OBJECT_STRING = '[object String]';
 
 function isArray(obj) {
   if ('isArray' in Array) {
     return Array.isArray(obj);
   }
-  return Object.prototype.toString.call(obj) === '[object Array]';
+  return Object.prototype.toString.call(obj) === OBJECT_ARRAY;
 }
 function isFunction(obj) {
-  return toString.call(obj) === '[object Function]';
+  return toString.call(obj) === OBJECT_FUNCTION;
 }
 function isObject(obj) {
-  return obj === Object(obj);
+  return obj === Object(obj) && toString.call(obj) === OBJECT_OBJECT;
 }
 function isString(obj) {
-  return toString.call(obj) === '[object String]';
+  return toString.call(obj) === OBJECT_STRING;
 }
 function object(obj) {
   function F() {}
@@ -156,19 +160,8 @@ Mediator.prototype = {
     }
   },
   createMediator: function (dom, className, options) {
-    var mediator;
-    if (isArray(options)) {
-      mediator = 'create' in Object ? Object.create(className.prototype) : object(className.prototype);
-      options.unshift(dom);
-      className.apply(mediator, options);
-    } else {
-      var param = this.isBackbone ? extend({el: dom}, options) : dom;
-      mediator = new className(param, options);
-    }
-
-    if (this.$context) {
-      this.$context.inject(mediator);
-    }
+    var param = this.isBackbone ? extend({el: dom}, options) : dom
+      , mediator = this.$context.createInstance(className, param, options);
     return mediator;
   },
   getVO: function (selector) {
@@ -217,6 +210,7 @@ var Context = function () {
 
   this.mapValue('context', this);
   this.mapValue('mediatorMap', this.mediatorMap);
+  this.inject(this.mediatorMap);
 };
 var MappingVO = function (klass, instance) {
   this.klass = klass;
@@ -299,7 +293,7 @@ Context.prototype = {
       }
     }
 
-    return value || key;
+    return arguments.length === 1 ? value || key : value;
   },
   getSingleton: function (key) {
     if (!(key in this.mappings)) {

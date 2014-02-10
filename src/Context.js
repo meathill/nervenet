@@ -17,6 +17,7 @@ var Context = function () {
 
   this.mapValue('context', this);
   this.mapValue('mediatorMap', this.mediatorMap);
+  this.inject(this.mediatorMap);
 };
 var MappingVO = function (klass, instance) {
   this.klass = klass;
@@ -99,7 +100,7 @@ Context.prototype = {
       }
     }
 
-    return value || key;
+    return arguments.length === 1 ? value || key : value;
   },
   getSingleton: function (key) {
     if (!(key in this.mappings)) {
