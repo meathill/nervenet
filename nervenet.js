@@ -142,8 +142,11 @@ Mediator.prototype = {
   isBackbone: false,
   check: function (container) {
     for (var selector in this.maps) {
-      var nodes = container.querySelectorAll(selector)
-        , vo = this.maps[selector];
+      var nodes = container.querySelectorAll(selector);
+      if (nodes.length === 0) {
+        continue;
+      }
+      var vo = this.maps[selector];
       if (vo.isSingle) {
         if (vo.instance && 'setElement' in vo.instance) {
           vo.instance.setElement(nodes);
