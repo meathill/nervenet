@@ -42,8 +42,8 @@ Context.prototype = {
     }
     klass = isString(klass) ? this.getClass(klass) : klass;
     var instance = 'create' in Object ? Object.create(klass.prototype) : object(klass.prototype);
-    klass.apply(instance, args);
     this.inject(instance);
+    klass.apply(instance, args);
     return instance;
   },
   getClass: function (key) {
@@ -148,6 +148,7 @@ Context.prototype = {
       command: command,
       context: context
     });
+    return this;
   },
   mapSingleton: function (alias, constructor, instance) {
     if (this.hasMapping(alias)) {
@@ -189,12 +190,12 @@ Context.prototype = {
     Packager.start(callback, this);
   },
   trigger: function (event) {
-    var args = Array.prototype.slice.call(arguments, 1),
+    var args = slice.call(arguments, 1),
         handlers = this.eventMap[event];
     args.push(this);
     for (var i = 0, len = handlers.length; i < len; i++) {
       var eventObj = handlers[i];
-      eventObj.command.apply(eventObj.context, args);
+      eventObj.command.apply(eventObj.context || this, args);
     }
   }
 };
