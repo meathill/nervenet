@@ -367,8 +367,8 @@ Context.prototype = {
     }
     return this;
   },
-  mapValue: function (key, value) {
-    if (this.hasValue(key)) {
+  mapValue: function (key, value, isForce) {
+    if (!isForce && this.hasValue(key)) {
       throw new Error(Context.errors.SOMETHING_EXIST);
     }
     this.valueMap[key] = value;
