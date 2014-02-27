@@ -46,11 +46,15 @@ module.exports = function (grunt) {
           'nervenet.min.js': BUILD
         }
       }
+    },
+    qunit: {
+      all: ['test/*.html']
     }
   });
 
   grunt.loadNpmTasks('grunt-contrib-concat');
   grunt.loadNpmTasks('grunt-contrib-uglify');
+  grunt.loadNpmTasks('grunt-contrib-qunit');
 
   grunt.registerMultiTask('replace', 'Replace tokens', function () {
     var src = this.data.src,
@@ -67,5 +71,5 @@ module.exports = function (grunt) {
     grunt.log.writeln('File "' + dest + '" replaced.');
   });
 
-  grunt.registerTask('default', ['concat', 'replace', 'uglify']);
+  grunt.registerTask('default', ['qunit', 'concat', 'replace', 'uglify']);
 }

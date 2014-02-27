@@ -1,6 +1,6 @@
 {
   "name": "nervenet",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "A nerve net help every parts of project work together",
   "keywords": [
     "framework",
@@ -25,6 +25,7 @@
     "grunt-contrib-concat": "~0.3.0",
     "grunt-contrib-uglify": "~0.3.2",
     "qunitjs": "~1.14.0",
-    "jquery": "~2.1.0"
+    "jquery": "~2.1.0",
+    "grunt-contrib-qunit": "^0.4.0"
   }
 }

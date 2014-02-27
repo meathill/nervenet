@@ -100,7 +100,7 @@ Context.prototype = {
       }
     }
 
-    return arguments.length === 1 ? value || key : value;
+    return arguments.length === 1 ? key : value;
   },
   getSingleton: function (key) {
     if (!(key in this.mappings)) {

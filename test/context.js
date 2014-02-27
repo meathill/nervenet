@@ -9,11 +9,13 @@
 
 function Sample(author) {
   this.author = author || '';
-  this.$author = '';
-  this.writer = '{{$author}}';
-  this.$book = '';
-  this.$store = 'BookStore';
-  this.store2 = '{{$somestore}}';
+}
+Sample.prototype = {
+  $author: '',
+  writer: '{{$author}}',
+  $book: '',
+  $store: 'BookStore',
+  store2: '{{$somestore}}'
 }
 function SampleObj(options) {
   this.author = options.$author;
