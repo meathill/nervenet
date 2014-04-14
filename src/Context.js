@@ -190,6 +190,9 @@ Context.prototype = {
     Packager.start(callback, this);
   },
   trigger: function (event) {
+    if (!(event in this.eventMap)) {
+      return;
+    }
     var args = slice.call(arguments, 1),
         handlers = this.eventMap[event];
     args.push(this);

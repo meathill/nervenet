@@ -85,7 +85,7 @@ function parseNamespace(str, root) {
 
 var namespaces = {};
 var Nervenet = global.Nervenet = {
-  VERSION: '0.1.3',
+  VERSION: '0.1.4',
   createContext: function () {
     return new Context();
   },
@@ -386,6 +386,9 @@ Context.prototype = {
     Packager.start(callback, this);
   },
   trigger: function (event) {
+    if (!(event in this.eventMap)) {
+      return;
+    }
     var args = slice.call(arguments, 1),
         handlers = this.eventMap[event];
     args.push(this);
