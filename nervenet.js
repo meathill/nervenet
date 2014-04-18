@@ -85,7 +85,7 @@ function parseNamespace(str, root) {
 
 var namespaces = {};
 var Nervenet = global.Nervenet = {
-  VERSION: '0.1.4',
+  VERSION: '0.1.5',
   createContext: function () {
     return new Context();
   },
@@ -141,24 +141,38 @@ Mediator.prototype = {
   $context: null,
   isBackbone: false,
   check: function (container) {
+    var matches = container.matches
+      || container.matchesSelector
+      || container.webkitMatchesSelector
+      || container.mozMatchesSelector
+      || container.msMatchesSelector;
     for (var selector in this.maps) {
+      // 先查自己
+      if (matches && matches.call(container, selector)) {
+        this.preCheck(container, selector);
+      }
+
+      // 再查子节点
       var nodes = container.querySelectorAll(selector);
       if (nodes.length === 0) {
         continue;
       }
-      var vo = this.maps[selector];
-      if (vo.isSingle) {
-        if (vo.instance && 'setElement' in vo.instance) {
-          vo.instance.setElement(nodes);
-        } else {
-          vo.instance = this.createMediator(nodes, vo.klass, vo.options);
-        }
+      this.preCheck(nodes, selector);
+    }
+  },
+  preCheck: function (nodes, selector) {
+    var vo = this.maps[selector];
+    if (vo.isSingle) {
+      if (vo.instance && 'setElement' in vo.instance) {
+        vo.instance.setElement(nodes);
       } else {
-        vo.instance = vo.instance || [];
-        for (var i = 0, len = nodes.length; i < len; i++) {
-          var mediator = this.createMediator(nodes[i], vo.klass, vo.options);
-          vo.instance.push(mediator);
-        }
+        vo.instance = this.createMediator(nodes, vo.klass, vo.options);
+      }
+    } else {
+      vo.instance = vo.instance || [];
+      for (var i = 0, len = nodes.length; i < len; i++) {
+        var mediator = this.createMediator(nodes[i], vo.klass, vo.options);
+        vo.instance.push(mediator);
       }
     }
   },
