@@ -85,7 +85,7 @@ function parseNamespace(str, root) {
 
 var namespaces = {};
 var Nervenet = global.Nervenet = {
-  VERSION: '0.1.5',
+  VERSION: '0.1.6',
   createContext: function () {
     return new Context();
   },
@@ -353,7 +353,7 @@ Context.prototype = {
     return this;
   },
   mapEvent: function (event, command, context) {
-    this.eventMap[event] = this.eventMap.event || [];
+    this.eventMap[event] = this.eventMap[event] || [];
     this.eventMap[event].push({
       command: command,
       context: context
@@ -386,6 +386,32 @@ Context.prototype = {
       throw new Error(Context.errors.SOMETHING_EXIST);
     }
     this.valueMap[key] = value;
+    return this;
+  },
+  removeEvent: function (event, command, context) {
+    var retain, events, i, len;
+    if (!event && !command && !context) {
+      this.eventMap = void 0;
+      return this;
+    }
+    for (var evt in this.eventMap) {
+      if (event && event !== evt) {
+        continue;
+      }
+      events = this.eventMap[evt];
+      this.eventMap[evt] = retain = [];
+      if (command || context) {
+        for (i = 0, len = events.length; i < len; i++) {
+          event = events[i];
+          if (command && command !== event.command || context && context !== event.context) {
+            retain.push(event);
+          }
+        }
+      }
+      if (!retain.length) {
+        delete this.eventMap[evt];
+      }
+    }
     return this;
   },
   removeMapping: function (key) {

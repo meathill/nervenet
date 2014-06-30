@@ -149,3 +149,16 @@ test('map event', function () {
   }, obj);
   context.trigger('check', 1);
 });
+
+test('remove event', function () {
+  var context = new Context()
+    , obj = {
+      number: 1
+    };
+  context.mapEvent('check', function (curr) {
+    equal(curr, 1, 'map ok');
+  }, obj);
+  context.trigger('check', 1);
+  context.removeEvent('check');
+  ok(!('check' in context.eventMap));
+});
