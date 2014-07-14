@@ -29,6 +29,10 @@ function isObject(obj) {
 function isString(obj) {
   return toString.call(obj) === OBJECT_STRING;
 }
+function isDom(obj) {
+  return typeof HTMLElement === 'object' ? obj instanceof HTMLElement :
+    obj && typeof obj === 'object' && obj !== null && obj.nodeType === 1 && typeof obj.nodeName === 'string';
+}
 function object(obj) {
   function F() {}
   F.prototype = obj;
@@ -56,7 +60,7 @@ function parseNamespace(str, root) {
   var arr = str.split('.'),
       root = root || global;
   for (var i = 0, len = arr.length; i < len; i++) {
-    if (!(arr[i] in root)) {
+    if (!(arr[i] in root) || isDom(root[arr[i]])) {
       return false;
     }
     root = root[arr[i]];
