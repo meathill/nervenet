@@ -89,7 +89,7 @@ function parseNamespace(str, root) {
 
 var namespaces = {};
 var Nervenet = global.Nervenet = {
-  VERSION: '0.1.6',
+  VERSION: '0.1.8',
   createContext: function () {
     return new Context();
   },
@@ -266,37 +266,37 @@ Context.prototype = {
   getInjectValue: function (key, value) {
     var prefix = this.config.injectPrefix === '$' ? '\\$' : this.config.injectPrefix,
         preReg = new RegExp('^' + prefix + '([\\w\\-]+)$'),
-        valueReg = new RegExp('^{{' + prefix + '([\\w\\-]+)}}$');
+        valueReg = new RegExp('^{{' + prefix + '([\\w\\-\\.]+)}}$');
 
     // get specific value first
-    if (isString(value) && value.length > 0) {
-      if (valueReg.test(value)) {
-        var mapKey = value.match(valueReg)[1];
-        return this.getValue(mapKey) || (mapKey in this.mappings && this.getSingleton(mapKey));
+    if (isString(value) && valueReg.test(value)) {
+      var mapKey = value.match(valueReg)[1]
+        , instance = this.getValue(mapKey) || (mapKey in this.mappings && this.getSingleton(mapKey));
+      if (instance) {
+        return instance;
       }
 
-      var klass = parseNamespace(value);
+      var klass = parseNamespace(mapKey);
       if (klass) { // has specific type
-        if (isFunction(klass)) { // need (to create) instance
-          var isExist = false;
-          for (var mapKey in this.mappings) {
+        if (isFunction(klass)) { // need (to create) intance;
+          for (mapKey in this.mappings) {
+            if (!this.mappings.hasOwnProperty(mapKey)) {
+              continue;
+            }
             if (this.getClass(mapKey) === klass) {
               if (this.getSingleton(mapKey)) {
                 return this.getSingleton(mapKey);
               } else {
-                var instance = this.createInstance(mapKey);
+                instance = this.createInstance(mapKey);
                 this.mapSingleton(mapKey, instance);
                 return instance;
               }
-              isExist = true;
-              break;
             }
           }
-          if (!isExist) {
-            var instance = this.createInstance(klass);
-            this.mapSingleton(value, klass, instance);
-            return instance;
-          }
+
+          instance = this.createInstance(klass);
+          this.mapSingleton(value, klass, instance);
+          return instance;
         } else {
           this.mapValue(value, klass);
           return klass;
@@ -306,7 +306,7 @@ Context.prototype = {
 
     // then search in key
     if (preReg.test(key)) {
-      var key = key.match(preReg)[1];
+      key = key.match(preReg)[1];
       if (key in this.valueMap) {
         return this.getValue(key);
       } else if (key in this.mappings) {
@@ -337,10 +337,10 @@ Context.prototype = {
     return key in this.valueMap;
   },
   inject: function (target) {
-    for (var key in target) {
+    for (var key in target) { // 确保继承的属性也能被注入ey))
       target[key] = this.getInjectValue(key, target[key]);
     }
-    if (target.postConstruct && isFunction(target.postConstruct)) {
+    if ('postConstruct' in target && isFunction(target.postConstruct)) {
       var args = slice.call(arguments, 1);
       target.postConstruct.apply(target, args);
     }
@@ -440,112 +440,6 @@ Context.prototype = {
       var eventObj = handlers[i];
       eventObj.command.apply(eventObj.context || this, args);
     }
-  }
-};
-/**
- * Created with JetBrains WebStorm.
- * Date: 13-7-15
- * Time: 下午11:26
- * @overview handle class dependency and create load queue
- * @author Meathill <meathill@gmail.com> (http://blog.meathill.com/)
- * @since 0.1
- */
-var REG = /(import|extend) ((\w+\.)+(\w+))/ig,
-    index = 0,
-    queue = [],
-    ordered = [],
-    startup = {},
-    head = document.getElementsByTagName('head')[0] || document.documentElement,
-    baseElement = head.getElementsByTagName('base')[0],
-    xhr = new XMLHttpRequest();
-
-xhr.onload = function () {
-  queue[index].content = this.response;
-  Packager.parse(this.response);
-  index++;
-  Packager.loadNext();
-}
-function getPath(str) {
-  return config.dir + '/' + str.split('.').join('/') + '.js';
-}
-function createScript(str, className) {
-  className = className || '';
-  var script = document.createElement('script');
-  script.className = 'nervenet ' + className;
-  script.innerHTML = str;
-  if (baseElement) {
-    head.insertBefore(script, baseElement);
-  } else {
-    head.appendChild(script);
-  }
-}
-
-var Packager = {
-  createNodes: function () {
-    for (var i = 0, len = ordered.length; i < len; i++) {
-      for (var j = 0, qlen = queue.length; j < qlen; j++) {
-        if (queue[j].fullname === ordered[i]) {
-          createScript(queue[j].content, queue[j].className);
-          queue.splice(j, 1);
-          break;
-        }
-      }
-    }
-
-    if ('func' in startup) {
-      startup.func.call(startup.context);
-    }
-  },
-  loadNext: function () {
-    if (index >= queue.length) {
-      this.createNodes();
-      return;
-    }
-
-    xhr.open('get', getPath(queue[index].fullname));
-    xhr.send();
-  },
-  parse: function (str) {
-    if (isFunction(str)) {
-      str = str.toString();
-    }
-    var classes = str.match(REG);
-    if (classes) {
-      for (var i = 0, len = classes.length; i < len; i++) {
-        var fullname = classes[i].slice(7);
-        if (ordered.indexOf(fullname) === -1) {
-          var item = {
-            fullname: fullname,
-            className: fullname.slice(fullname.lastIndexOf('.') + 1),
-            type: classes[i].substr(0, 6),
-            content: ''
-          };
-          queue.push(item);
-          if (item.type === 'import') {
-            ordered.push(fullname);
-          } else {
-            var sub = queue[index].fullname,
-                offset = ordered.indexOf(sub);
-            ordered.splice(offset, 0, fullname);
-          }
-        }
-      }
-    }
-  },
-  reset: function () {
-    index = 0;
-    ordered = [];
-    queue = [];
-  },
-  start: function (callback, context) {
-    this.reset();
-    startup = {
-      func: callback,
-      context: context
-    };
-
-    this.parse(callback);
-    this.loadNext();
   }
 };
 

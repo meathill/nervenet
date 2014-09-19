@@ -52,37 +52,37 @@ Context.prototype = {
   getInjectValue: function (key, value) {
     var prefix = this.config.injectPrefix === '$' ? '\\$' : this.config.injectPrefix,
         preReg = new RegExp('^' + prefix + '([\\w\\-]+)$'),
-        valueReg = new RegExp('^{{' + prefix + '([\\w\\-]+)}}$');
+        valueReg = new RegExp('^{{' + prefix + '([\\w\\-\\.]+)}}$');
 
     // get specific value first
-    if (isString(value) && value.length > 0) {
-      if (valueReg.test(value)) {
-        var mapKey = value.match(valueReg)[1];
-        return this.getValue(mapKey) || (mapKey in this.mappings && this.getSingleton(mapKey));
+    if (isString(value) && valueReg.test(value)) {
+      var mapKey = value.match(valueReg)[1]
+        , instance = this.getValue(mapKey) || (mapKey in this.mappings && this.getSingleton(mapKey));
+      if (instance) {
+        return instance;
       }
 
-      var klass = parseNamespace(value);
+      var klass = parseNamespace(mapKey);
       if (klass) { // has specific type
-        if (isFunction(klass)) { // need (to create) instance
-          var isExist = false;
-          for (var mapKey in this.mappings) {
+        if (isFunction(klass)) { // need (to create) intance;
+          for (mapKey in this.mappings) {
+            if (!this.mappings.hasOwnProperty(mapKey)) {
+              continue;
+            }
             if (this.getClass(mapKey) === klass) {
               if (this.getSingleton(mapKey)) {
                 return this.getSingleton(mapKey);
               } else {
-                var instance = this.createInstance(mapKey);
+                instance = this.createInstance(mapKey);
                 this.mapSingleton(mapKey, instance);
                 return instance;
               }
-              isExist = true;
-              break;
             }
           }
-          if (!isExist) {
-            var instance = this.createInstance(klass);
-            this.mapSingleton(value, klass, instance);
-            return instance;
-          }
+
+          instance = this.createInstance(klass);
+          this.mapSingleton(value, klass, instance);
+          return instance;
         } else {
           this.mapValue(value, klass);
           return klass;
@@ -92,7 +92,7 @@ Context.prototype = {
 
     // then search in key
     if (preReg.test(key)) {
-      var key = key.match(preReg)[1];
+      key = key.match(preReg)[1];
       if (key in this.valueMap) {
         return this.getValue(key);
       } else if (key in this.mappings) {
@@ -123,10 +123,10 @@ Context.prototype = {
     return key in this.valueMap;
   },
   inject: function (target) {
-    for (var key in target) {
+    for (var key in target) { // 确保继承的属性也能被注入ey))
       target[key] = this.getInjectValue(key, target[key]);
     }
-    if (target.postConstruct && isFunction(target.postConstruct)) {
+    if ('postConstruct' in target && isFunction(target.postConstruct)) {
       var args = slice.call(arguments, 1);
       target.postConstruct.apply(target, args);
     }

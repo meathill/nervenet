@@ -14,7 +14,7 @@ Sample.prototype = {
   $author: '',
   writer: '{{$author}}',
   $book: '',
-  $store: 'BookStore',
+  $store: '{{$BookStore}}',
   store2: '{{$somestore}}'
 }
 function SampleObj(options) {
@@ -57,12 +57,12 @@ test('inject', function () {
     .mapValue(KEY, Author)
     .inject(instance);
   ok(instance.$author === Author, 'injected!');
-  ok(instance.writer === Author, 'injected by defination');
+  ok(instance.writer === Author, 'injected by definition');
 
   context.config.injectPrefix = '';
   context.inject(instance);
   ok(instance.author === Author, 'injected again!');
-  ok(instance.writer === Author, 'injected by defination again');
+  ok(instance.writer === Author, 'injected by definition again');
 });
 
 test('inject singleton', function () {

@@ -23,7 +23,6 @@ module.exports = function (grunt) {
 
           'src/Mediator.js',
           'src/Context.js',
-          'src/Packager.js',
 
           'src/outro.js'
         ]
@@ -38,7 +37,7 @@ module.exports = function (grunt) {
     uglify: {
       options: {
         report: 'gzip',
-        sourceMap: 'nervenet.min.map',
+        sourceMap: true,
         banner: '/* <%= pkg.name %> ver.<%= pkg.version %>  (c) 2013 Meathill  MIT\n build at <%= grunt.template.today("yyyy-mm-dd hh:mm:ss") %>*/ \n'
       },
       target: {
