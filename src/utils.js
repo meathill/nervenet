@@ -44,9 +44,13 @@ function inherit(superClass, subClass) {
   subClass.prototype = prototype;
 }
 function extend(obj) {
+  obj = obj || {};
   var args = slice.call(arguments, 1);
   for (var i = 0, len = args.length; i < len; i++) {
     var source = args[i];
+    if (!source) {
+      continue;
+    }
     for (var prop in source) {
       obj[prop] = source[prop];
     }

@@ -7,10 +7,14 @@
  * @since
  */
 
-test('extend', function () {
+test('extend', 2, function () {
   var from = {
-        id: 1
-      }, to = {};
+      id: 1
+    }
+    , to = {}
+    , one;
   extend(to, from);
-  ok(from.id === 1, 'Passed!');
+  one = extend(null, to);
+  ok(to.id === 1, 'Passed!');
+  ok(one.id === 1, 'Passed!');
 });
