@@ -4,6 +4,9 @@
 function SomeMediator(view, options) {
   this.$view = $(view);
   this.token = options.token;
+  if (options.hasExtra) {
+    this.$view.append('<p class="extra">extra</p>');
+  }
   this.registerEvents();
   console.log(options.token);
 }
@@ -94,6 +97,20 @@ test("create multiple mediator for nodes", 2, function () {
 
   ok(isArray(context.mediatorMap.getVO('.group').instance));
   ok(context.mediatorMap.getVO('.group').instance.length === NODES.length);
+});
+
+test('create mediator with extra data', 1, function () {
+  var context = new Context()
+    , options = {
+      token: Date.now().toString()
+    }
+    , extra = {
+      hasExtra: true
+    };
+  context.mediatorMap.map('.some', SomeMediator, options);
+  context.mediatorMap.check(container, extra);
+
+  ok(NODE.find('.extra').text() === 'extra');
 });
 
 test("inject view", function () {

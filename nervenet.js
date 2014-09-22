@@ -89,7 +89,7 @@ function parseNamespace(str, root) {
 
 var namespaces = {};
 var Nervenet = global.Nervenet = {
-  VERSION: '0.1.8',
+  VERSION: '0.1.9',
   createContext: function () {
     return new Context();
   },
@@ -144,7 +144,7 @@ Mediator.errors = {
 Mediator.prototype = {
   $context: null,
   isBackbone: false,
-  check: function (container) {
+  check: function (container, extra) {
     var matches = container.matches
       || container.matchesSelector
       || container.webkitMatchesSelector
@@ -153,7 +153,7 @@ Mediator.prototype = {
     for (var selector in this.maps) {
       // 先查自己
       if (matches && matches.call(container, selector)) {
-        this.preCheck(container, selector);
+        this.preCheck(container, selector, extra);
       }
 
       // 再查子节点
@@ -161,24 +161,25 @@ Mediator.prototype = {
       if (nodes.length === 0) {
         continue;
       }
-      this.preCheck(nodes, selector);
+      this.preCheck(nodes, selector, extra);
     }
   },
-  preCheck: function (nodes, selector) {
+  preCheck: function (nodes, selector, extra) {
     var vo = this.maps[selector];
     if (vo.isSingle) {
       if (vo.instance && 'setElement' in vo.instance) {
         vo.instance.setElement(nodes);
       } else {
-        vo.instance = this.createMediator(nodes, vo.klass, vo.options);
+        vo.instance = this.createMediator(nodes, vo.klass, extend(vo.options, extra));
       }
     } else {
       vo.instance = vo.instance || [];
       for (var i = 0, len = nodes.length; i < len; i++) {
-        var mediator = this.createMediator(nodes[i], vo.klass, vo.options);
+        var mediator = this.createMediator(nodes[i], vo.klass, extend(vo.options, extra));
         vo.instance.push(mediator);
       }
     }
+    return vo.instance;
   },
   createMediator: function (dom, className, options) {
     var param = this.isBackbone ? extend({el: dom}, options) : dom
