@@ -6,10 +6,10 @@
  * @author Meathill <meathill@gmail.com> (http://blog.meathill.com/)
  * @since 0.1
  */
-var Config = function () {
+var Configure = function () {
 
 }
-Config.prototype = {
+Configure.prototype = {
   configure: function () {
 
   }
