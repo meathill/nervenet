@@ -1,6 +1,6 @@
 {
   "name": "nervenet",
-  "version": "0.1.9",
+  "version": "0.2.0",
   "description": "A nerve net help every parts of project work together",
   "keywords": [
     "framework",
@@ -14,18 +14,13 @@
   "author": {
     "name": "Meathill Zhai",
     "email": "meathill@gmail.com",
-    "url": "http://blog.meathill.com/"
+    "url": "https://blog.meathill.com/"
   },
   "repository": {
     "type": "git",
     "url": "https://github.com/meathill/nervenet"
   },
   "devDependencies": {
-    "grunt": "~0.4.5",
-    "grunt-contrib-concat": "~0.5.0",
-    "grunt-contrib-uglify": "~0.6.0",
-    "qunitjs": "~1.15.0",
-    "jquery": "^3.3.1",
-    "grunt-contrib-qunit": "~0.5.2"
+    "jquery": "^3.6.0"
   }
 }
